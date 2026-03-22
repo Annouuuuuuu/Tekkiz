@@ -1,0 +1,68 @@
+{
+  "home": {
+    "hero": {
+      "title": "Maîtrisez la tech",
+      "highlight": "dans le fun.",
+      "description": "Tekizz transforme les concepts complexes en défis interactifs. Apprenez plus vite et développez une vraie logique de développeur.",
+      "cta": "Démarrer l'expérience",
+      "members": "déjà inscrits"
+    },
+    "features": {
+      "title": "Fonctionnalités",
+      "subtitle": "Une plateforme complète pour développer vos compétences techniques",
+      "games": {
+        "title": "Jeux ludiques et interactifs",
+        "description": "Des quiz QCM et jeux de correspondance pour apprendre en vous amusant. Testez vos connaissances et renforcez votre mémorisation de manière engageante."
+      },
+      "adaptive": {
+        "title": "Difficulté adaptative",
+        "description": "Le système s'adapte à votre niveau. Plus vous performez, plus les défis deviennent stimulants pour maximiser votre apprentissage."
+      },
+      "stats": {
+        "title": "Statistiques détaillées",
+        "description": "Suivez votre progression avec des graphiques et métriques précis : précision par catégorie, évolution des scores et points forts."
+      },
+      "leaderboard": {
+        "title": "Classement compétitif",
+        "description": "Comparez vos performances avec d'autres développeurs. Grimpez dans le classement et défiez la communauté."
+      },
+      "resources": {
+        "title": "Ressources d'apprentissage",
+        "description": "Accédez à des ressources ciblées pour approfondir vos connaissances. Liens vers la documentation, tutoriels et articles recommandés selon vos résultats."
+      },
+      "community": {
+        "title": "Communauté active",
+        "description": "Rejoignez une communauté de passionnés. Partagez, apprenez et progressez ensemble dans un environnement bienveillant."
+      }
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "subtitle": "Tout ce que vous devez savoir sur Tekizz",
+      "q1": {
+        "question": "Qu'est-ce que Tekizz ?",
+        "answer": "Tekizz est une plateforme d'apprentissage interactif conçue pour les développeurs et passionnés de tech. Elle transforme l'apprentissage en expérience ludique grâce à des quiz adaptatifs et un système de gamification engageant."
+      },
+      "q2": {
+        "question": "Comment fonctionne le système de difficulté ?",
+        "answer": "Le système de difficulté est progressif et automatique. Vous commencez au niveau Facile et, selon vos performances, le jeu augmente progressivement la difficulté : Moyen, Difficile, puis Expert. Cela garantit un défi adapté à votre niveau."
+      },
+      "q3": {
+        "question": "Quelles catégories de questions sont disponibles ?",
+        "answer": "Tekizz couvre un large éventail de domaines tech : Backend (Java, Spring Boot), Frontend (React, Vue, Angular), DevOps (Docker, Kubernetes, CI/CD), Data Science, Sécurité informatique, et bien d'autres. De nouvelles catégories sont régulièrement ajoutées."
+      },
+      "q4": {
+        "question": "Est-ce que Tekizz est gratuit ?",
+        "answer": "Oui, Tekizz est entièrement gratuit. Créez simplement votre compte et commencez à jouer immédiatement. Aucun paiement requis pour accéder à toutes les fonctionnalités."
+      },
+      "q5": {
+        "question": "Comment puis-je suivre ma progression ?",
+        "answer": "Un tableau de bord complet vous permet de visualiser vos statistiques : score global, précision par catégorie, historique des parties, et votre position dans le classement. Toutes vos données sont synchronisées automatiquement."
+      }
+    },
+    "cta": {
+      "title": "Prêt à relever le défi ?",
+      "description": "Rejoignez des milliers de développeurs qui progressent chaque jour avec Tekizz.",
+      "button": "Commencer maintenant"
+    }
+  }
+}

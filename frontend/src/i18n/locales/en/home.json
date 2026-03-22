@@ -1,0 +1,68 @@
+{
+  "home": {
+    "hero": {
+      "title": "Master tech",
+      "highlight": "in fun.",
+      "description": "Tekizz transforms complex concepts into interactive challenges. Learn faster and develop real developer logic.",
+      "cta": "Start the experience",
+      "members": "already registered"
+    },
+    "features": {
+      "title": "Features",
+      "subtitle": "A complete platform to develop your technical skills",
+      "games": {
+        "title": "Interactive Games",
+        "description": "QCM quizzes and matching games to learn while having fun. Test your knowledge and strengthen your memorization in an engaging way."
+      },
+      "adaptive": {
+        "title": "Adaptive Difficulty",
+        "description": "The system adapts to your level. The better you perform, the more challenging the games become to maximize your learning."
+      },
+      "stats": {
+        "title": "Detailed Statistics",
+        "description": "Track your progress with precise charts and metrics: accuracy by category, score evolution, and strengths."
+      },
+      "leaderboard": {
+        "title": "Competitive Leaderboard",
+        "description": "Compare your performance with other developers. Climb the ranks and challenge the community."
+      },
+      "resources": {
+        "title": "Learning Resources",
+        "description": "Access targeted resources to deepen your knowledge. Links to documentation, tutorials, and recommended articles based on your results."
+      },
+      "community": {
+        "title": "Active Community",
+        "description": "Join a community of passionate developers. Share, learn, and grow together in a supportive environment."
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about Tekizz",
+      "q1": {
+        "question": "What is Tekizz?",
+        "answer": "Tekizz is an interactive learning platform designed for developers and tech enthusiasts. It transforms learning into a fun experience through adaptive quizzes and an engaging gamification system."
+      },
+      "q2": {
+        "question": "How does the difficulty system work?",
+        "answer": "The difficulty system is progressive and automatic. You start at Easy level and, based on your performance, the game gradually increases difficulty: Medium, Hard, then Expert. This ensures a challenge adapted to your level."
+      },
+      "q3": {
+        "question": "What question categories are available?",
+        "answer": "Tekizz covers a wide range of tech domains: Backend (Java, Spring Boot), Frontend (React, Vue, Angular), DevOps (Docker, Kubernetes, CI/CD), Data Science, Cybersecurity, and many more. New categories are regularly added."
+      },
+      "q4": {
+        "question": "Is Tekizz free?",
+        "answer": "Yes, Tekizz is completely free. Simply create your account and start playing immediately. No payment required to access all features."
+      },
+      "q5": {
+        "question": "How can I track my progress?",
+        "answer": "A comprehensive dashboard lets you visualize your statistics: global score, accuracy by category, game history, and your position in the leaderboard. All your data is automatically synchronized."
+      }
+    },
+    "cta": {
+      "title": "Ready to take the challenge?",
+      "description": "Join thousands of developers improving every day with Tekizz.",
+      "button": "Get started now"
+    }
+  }
+}

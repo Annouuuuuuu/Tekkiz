@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: tekizz
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tekizz
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user, user:email
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: profile, email
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:tekizz-secret-key-minimum-256-bits-long-for-hs256}
+    expiration: 86400000
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+
+server:
+  port: 8080
