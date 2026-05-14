@@ -221,8 +221,8 @@ jobs:
               exit 1
             fi
 
-            echo "  Déploiement frontend..."
-            docker compose -f docker-compose.prod.yml up -d frontend --remove-orphans
+            echo "  Déploiement frontend (force recreate — rafraîchit le DNS nginx vers le backend)..."
+            docker compose -f docker-compose.prod.yml up -d frontend --remove-orphans --force-recreate
 
             # ── Cleanup ───────────────────────────────────────────
             echo ""
