@@ -43,8 +43,18 @@ public class JwtService {
      */
     public String generateToken(Authentication authentication) {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
-        Map<String, Object> claims = buildClaims(oauthUser, authentication.getName());
-        return createToken(claims, oauthUser.getAttribute("email"));
+        String email = resolveEmail(oauthUser);
+        Map<String, Object> claims = buildClaims(oauthUser, authentication.getName(), email);
+        return createToken(claims, email);
+    }
+
+    private String resolveEmail(OAuth2User oauthUser) {
+        String email = oauthUser.getAttribute("email");
+        if (email != null && !email.isBlank()) return email;
+        // GitHub users with private emails — use same fallback as GitHubOAuthUserInfoExtractor
+        Object id = oauthUser.getAttribute("id");
+        String key = id != null ? id.toString() : oauthUser.getAttribute("login");
+        return (key != null ? key : "unknown") + "@github.local";
     }
 
     /**
@@ -61,9 +71,9 @@ public class JwtService {
         return createToken(claims, email);
     }
 
-    private Map<String, Object> buildClaims(OAuth2User oauthUser, String provider) {
+    private Map<String, Object> buildClaims(OAuth2User oauthUser, String provider, String resolvedEmail) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", oauthUser.getAttribute("email"));
+        claims.put("email", resolvedEmail);
         claims.put("name", oauthUser.getAttribute("name"));
         claims.put("provider", provider);
         return claims;

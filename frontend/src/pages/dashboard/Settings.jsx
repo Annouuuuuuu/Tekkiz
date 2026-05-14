@@ -2,12 +2,9 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { User, Lock, Trash2, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
+import qcmGameService from "@/services/qcmGame.service";
+import { User, Lock, Trash2, RefreshCw, ExternalLink, Loader2, Globe } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const SettingsPage = () => {
   const { t } = useTranslation("common");
@@ -18,6 +15,7 @@ const SettingsPage = () => {
   const [email, setEmail] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -32,9 +30,9 @@ const SettingsPage = () => {
 
   const handleSaveAccount = async (e) => {
     e.preventDefault();
-    
+
     if (!user?.id) return;
-    
+
     setIsSaving(true);
     try {
       const result = await userService.updateProfile(user.id, {
@@ -42,7 +40,7 @@ const SettingsPage = () => {
         lastName,
         username,
       });
-      
+
       if (result.success) {
         updateUser(result.data);
       }
@@ -51,20 +49,24 @@ const SettingsPage = () => {
     }
   };
 
-  const handleResetStats = () => {
-    if (window.confirm(t("settings.resetConfirm"))) {
-      console.log("Resetting statistics...");
+  const handleResetStats = async () => {
+    if (!window.confirm("Reset all your QCM statistics? This cannot be undone.")) return;
+    setIsResetting(true);
+    try {
+      await qcmGameService.resetUserStats();
+    } finally {
+      setIsResetting(false);
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!user?.id) return;
-    
+
     if (window.confirm(t("settings.deleteConfirm"))) {
       setIsDeleting(true);
       try {
         const result = await userService.deleteAccount(user.id);
-        
+
         if (result.success) {
           await logout();
         }
@@ -85,139 +87,188 @@ const SettingsPage = () => {
     }
   };
 
+  const inputClass =
+    "w-full px-3 py-2.5 text-sm rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30";
+  const labelClass =
+    "block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5";
+
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            <CardTitle>{t("settings.account")}</CardTitle>
+    <div className="max-w-2xl mx-auto px-6 py-8 space-y-4">
+      {/* Page header */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Compte</p>
+        <h1 className="mt-1 text-3xl font-black tracking-tight">{t("settings.account")}</h1>
+      </div>
+
+      {/* Account section */}
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-primary" />
+          <span className="text-sm font-bold">{t("settings.account")}</span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-3">{t("settings.accountDescription")}</p>
+
+        <form onSubmit={handleSaveAccount} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass} htmlFor="firstName">
+                {t("settings.firstName")}
+              </label>
+              <input
+                id="firstName"
+                className={inputClass}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder={t("settings.firstNamePlaceholder")}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="lastName">
+                {t("settings.lastName")}
+              </label>
+              <input
+                id="lastName"
+                className={inputClass}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder={t("settings.lastNamePlaceholder")}
+              />
+            </div>
           </div>
-          <CardDescription>{t("settings.accountDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSaveAccount} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">{t("settings.firstName")}</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder={t("settings.firstNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">{t("settings.lastName")}</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder={t("settings.lastNamePlaceholder")}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">{t("settings.username")}</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={t("settings.usernamePlaceholder")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("settings.email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("settings.emailPlaceholder")}
-                disabled={isOAuthUser}
-                className={isOAuthUser ? "bg-muted" : ""}
-              />
-              {isOAuthUser && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <ExternalLink className="w-3 h-3" />
-                  {t("settings.emailManagedBy", { provider: getProviderLabel(user.provider) })}
-                </p>
-              )}
-            </div>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("settings.saveChanges")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
 
+          <div>
+            <label className={labelClass} htmlFor="username">
+              {t("settings.username")}
+            </label>
+            <input
+              id="username"
+              className={inputClass}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={t("settings.usernamePlaceholder")}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass} htmlFor="email">
+              {t("settings.email")}
+            </label>
+            <input
+              id="email"
+              type="email"
+              className={`${inputClass} ${isOAuthUser ? "opacity-60 cursor-not-allowed" : ""}`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("settings.emailPlaceholder")}
+              disabled={isOAuthUser}
+            />
+            {isOAuthUser && (
+              <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
+                <ExternalLink className="w-3 h-3" />
+                {t("settings.emailManagedBy", { provider: getProviderLabel(user.provider) })}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-40 flex items-center gap-2"
+          >
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {t("settings.saveChanges")}
+          </button>
+        </form>
+      </div>
+
+      {/* OAuth security section */}
       {isOAuthUser && (
-        <>
-          <Separator />
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold">{t("settings.security")}</span>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-2">{t("settings.securityDescription")}</p>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-primary" />
-                <CardTitle>{t("settings.security")}</CardTitle>
-              </div>
-              <CardDescription>{t("settings.securityDescription")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 rounded-lg border bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <ExternalLink className="w-4 w-4" />
-                  <span className="font-medium">{t("settings.signedInWith", { provider: getProviderLabel(user.provider) })}</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t("settings.passwordManagedBy", { provider: getProviderLabel(user.provider) })}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </>
+          <div className="rounded-xl border border-border bg-background p-4 flex items-start gap-3">
+            <ExternalLink className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold">
+                {t("settings.signedInWith", { provider: getProviderLabel(user.provider) })}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t("settings.passwordManagedBy", { provider: getProviderLabel(user.provider) })}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      <Separator />
+      {/* Preferences section */}
+      <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Globe className="w-4 h-4 text-primary" />
+          <span className="text-sm font-bold">{t("settings.preferences")}</span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">{t("settings.preferencesDescription")}</p>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-primary" />
-            <CardTitle>{t("settings.data")}</CardTitle>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background p-4">
+          <div>
+            <p className="text-sm font-semibold">{t("settings.language")}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("settings.languageDescription")}</p>
           </div>
-          <CardDescription>{t("settings.dataDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-lg border">
-            <div>
-              <p className="font-medium">{t("settings.resetStatistics")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("settings.resetStatisticsDescription")}
-              </p>
-            </div>
-            <Button variant="outline" onClick={handleResetStats}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              {t("settings.reset")}
-            </Button>
-          </div>
+          <LanguageSwitcher variant="light" />
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between p-3 rounded-lg border border-red-200 bg-red-50">
-            <div>
-              <p className="font-medium text-red-600">{t("settings.deleteAccount")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("settings.deleteAccountDescription")}
-              </p>
-            </div>
-            <Button variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
-              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              <Trash2 className="w-4 h-4 mr-2" />
-              {t("settings.delete")}
-            </Button>
+      {/* Danger zone */}
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 space-y-5">
+        <div className="flex items-center gap-2">
+          <Trash2 className="w-4 h-4 text-red-400" />
+          <span className="text-sm font-bold text-red-400">{t("settings.data")}</span>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-3">{t("settings.dataDescription")}</p>
+
+        {/* Reset stats */}
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background p-4">
+          <div>
+            <p className="text-sm font-semibold">{t("settings.resetStatistics")}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t("settings.resetStatisticsDescription")}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <button
+            onClick={handleResetStats}
+            disabled={isResetting}
+            className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-bold hover:bg-muted/30 transition-colors flex items-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            {t("settings.reset")}
+          </button>
+        </div>
+
+        {/* Delete account */}
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-red-500/20 bg-background p-4">
+          <div>
+            <p className="text-sm font-semibold text-red-400">{t("settings.deleteAccount")}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t("settings.deleteAccountDescription")}
+            </p>
+          </div>
+          <button
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold hover:bg-red-500/20 transition-colors flex items-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            {t("settings.delete")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

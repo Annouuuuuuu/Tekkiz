@@ -24,6 +24,7 @@ import com.brandonkamga.tekizz.dto.qcm.QcmSubmitAnswerResponse;
 import com.brandonkamga.tekizz.dto.qcm.QcmUserStatsResponse;
 import com.brandonkamga.tekizz.exception.BadRequestException;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import com.brandonkamga.tekizz.repository.AnswerRepository;
 import com.brandonkamga.tekizz.repository.CategoryRepository;
 import com.brandonkamga.tekizz.repository.GameRepository;
@@ -39,8 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -133,8 +136,17 @@ public class QcmGameServiceImpl implements QcmGameService {
 
         session = gameSessionRepository.save(session);
 
-        // Survival mode - questions are fetched dynamically as the game progresses
-        // No pre-selection of questions
+        // Store tag filter if provided
+        if (config.getTagIds() != null && !config.getTagIds().isEmpty()) {
+            session.setTagFilterJson(config.getTagIds().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",")));
+        }
+
+        // Initialize server-side timer tracking
+        session.setCurrentTimerSeconds(gameMode.getInitialTimeSeconds());
+        session.setLastAnswerAt(LocalDateTime.now());
+        session = gameSessionRepository.save(session);
 
         return QcmGameSessionResponse.builder()
                 .sessionId(session.getId())
@@ -204,6 +216,18 @@ public class QcmGameServiceImpl implements QcmGameService {
     public QcmSubmitAnswerResponse submitAnswer(Long sessionId, QcmSubmitAnswerRequest request) {
         GameSession session = getValidSession(sessionId);
 
+        // Server-side timer validation: deduct elapsed time since last answer
+        if (session.getCurrentTimerSeconds() != null && session.getLastAnswerAt() != null) {
+            long elapsedSeconds = Duration.between(session.getLastAnswerAt(), LocalDateTime.now()).getSeconds();
+            int remainingTime = session.getCurrentTimerSeconds() - (int) elapsedSeconds;
+            if (remainingTime <= 0) {
+                session.setCurrentTimerSeconds(0);
+                session.complete();
+                gameSessionRepository.save(session);
+                throw new BadRequestException("Game session timer has expired");
+            }
+        }
+
         // Validate question
         Question question = questionRepository.findById(request.getQuestionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Question", "id", request.getQuestionId()));
@@ -270,10 +294,23 @@ public class QcmGameServiceImpl implements QcmGameService {
             session.setLivesRemaining(session.getLivesRemaining() - 1);
         }
 
-        // Survival mode - game ends only when lives run out (timer is handled by frontend)
+        // Update server-side timer tracking
+        boolean timerExpired = false;
+        if (session.getCurrentTimerSeconds() != null && session.getLastAnswerAt() != null) {
+            long elapsedSeconds = Duration.between(session.getLastAnswerAt(), LocalDateTime.now()).getSeconds();
+            int newTimerValue = session.getCurrentTimerSeconds() - (int) elapsedSeconds + timeAdjustment;
+            int maxTimer = session.getMaxTimerDuration() != null ? session.getMaxTimerDuration() : Integer.MAX_VALUE;
+            newTimerValue = Math.max(0, Math.min(newTimerValue, maxTimer));
+            session.setCurrentTimerSeconds(newTimerValue);
+            session.setLastAnswerAt(LocalDateTime.now());
+            if (newTimerValue <= 0) {
+                timerExpired = true;
+            }
+        }
+
         List<UserAnswer> allAnswers = userAnswerRepository.findByGameSessionId(sessionId);
         int questionsAnswered = allAnswers.size();
-        boolean isGameOver = session.getLivesRemaining() <= 0;
+        boolean isGameOver = session.getLivesRemaining() <= 0 || timerExpired;
 
         if (isGameOver) {
             session.complete();
@@ -295,7 +332,7 @@ public class QcmGameServiceImpl implements QcmGameService {
                 .livesRemaining(session.getLivesRemaining())
                 .questionsAnswered(questionsAnswered)
                 .isGameOver(isGameOver)
-                .timerExpired(false) // Timer is managed by frontend
+                .timerExpired(timerExpired)
                 .difficultyLevel(newDifficulty.name())
                 .hasNextQuestion(!isGameOver)
                 .nextQuestionIndex(isGameOver ? null : questionsAnswered + 1)
@@ -445,6 +482,16 @@ public class QcmGameServiceImpl implements QcmGameService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public void validateSessionOwnership(Long sessionId, Long userId) {
+        GameSession session = gameSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("GameSession", "id", sessionId));
+        if (!session.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("You do not have access to this game session");
+        }
+    }
+
     // ==================== Private Helper Methods ====================
 
     private GameSession getValidSession(Long sessionId) {
@@ -476,6 +523,25 @@ public class QcmGameServiceImpl implements QcmGameService {
             availableQuestions = questionRepository.findByCategoryIdAndStatus(
                     session.getCategory().getId(),
                     QuestionStatusType.ACTIVE);
+        }
+
+        // Apply tag filtering if the session has a tag filter configured
+        String tagFilterJson = session.getTagFilterJson();
+        if (tagFilterJson != null && !tagFilterJson.isEmpty() && session.getGame() != null) {
+            List<Long> tagIds = Arrays.stream(tagFilterJson.split(","))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            List<Question> tagFiltered = questionRepository.findByCategoryIdAndGameIdAndTagIdsAndStatus(
+                    session.getCategory().getId(),
+                    session.getGame().getId(),
+                    tagIds,
+                    QuestionStatusType.ACTIVE);
+            Set<Long> tagFilteredIds = tagFiltered.stream()
+                    .map(Question::getId)
+                    .collect(Collectors.toSet());
+            availableQuestions = availableQuestions.stream()
+                    .filter(q -> tagFilteredIds.contains(q.getId()))
+                    .collect(Collectors.toList());
         }
 
         // Filter out already answered questions
@@ -697,13 +763,16 @@ public class QcmGameServiceImpl implements QcmGameService {
         Map<Long, List<GameSession>> byUser = sessions.stream()
                 .collect(Collectors.groupingBy(s -> s.getUser().getId()));
 
+        // Batch-fetch highest difficulty per user to avoid N+1
+        Map<Long, String> highestDifficultiesMap = getHighestDifficultiesForUsers(byUser.keySet());
+
         // Calculate leaderboard entries
         List<QcmLeaderboardResponse.LeaderboardEntry> entries = new ArrayList<>();
         for (Map.Entry<Long, List<GameSession>> entry : byUser.entrySet()) {
             Long userId = entry.getKey();
             List<GameSession> userSessions = entry.getValue();
             User user = userSessions.get(0).getUser();
-            
+
             int totalScore = userSessions.stream().mapToInt(GameSession::getTotalScore).sum();
             int gamesPlayed = userSessions.size();
             int totalQuestions = userSessions.stream().mapToInt(GameSession::getTotalQuestions).sum();
@@ -721,8 +790,8 @@ public class QcmGameServiceImpl implements QcmGameService {
                     .map(Map.Entry::getKey)
                     .orElse("N/A");
 
-            // Calculate difficulty factor (1-4)
-            String highestDifficulty = determineHighestDifficultyReached(userId);
+            // Use batched difficulty map instead of per-user query
+            String highestDifficulty = highestDifficultiesMap.getOrDefault(userId, "EASY");
             int difficultyFactor = getDifficultyFactor(highestDifficulty);
 
             // Calculate composite score (0-100) for objective ranking
@@ -783,6 +852,28 @@ public class QcmGameServiceImpl implements QcmGameService {
                 .currentPage(page)
                 .totalPages(totalPages)
                 .build();
+    }
+
+    /**
+     * Batch-fetches the highest difficulty level reached per user.
+     * Single query for all users — avoids N+1 in leaderboard aggregation.
+     */
+    private Map<Long, String> getHighestDifficultiesForUsers(Set<Long> userIds) {
+        Map<Long, String> result = new HashMap<>();
+        if (userIds.isEmpty()) return result;
+
+        userIds.forEach(id -> result.put(id, "EASY"));
+
+        List<Object[]> rows = userAnswerRepository.findUserIdAndDifficultyByUserIds(new ArrayList<>(userIds));
+        for (Object[] row : rows) {
+            Long uid = (Long) row[0];
+            QuestionLevelType level = (QuestionLevelType) row[1];
+            String current = result.get(uid);
+            if (current == null || getDifficultyOrder(level) > getDifficultyOrder(QuestionLevelType.valueOf(current))) {
+                result.put(uid, level.name());
+            }
+        }
+        return result;
     }
 
     // Helper method to convert difficulty string to numeric factor
@@ -949,7 +1040,17 @@ public class QcmGameServiceImpl implements QcmGameService {
                 return i + 1;
             }
         }
-        
+
         return 0;
+    }
+
+    @Override
+    @Transactional
+    public void resetUserStats(Long userId) {
+        List<GameSession> sessions = gameSessionRepository.findByUserId(userId);
+        for (GameSession session : sessions) {
+            userAnswerRepository.deleteByGameSessionId(session.getId());
+        }
+        gameSessionRepository.deleteAll(sessions);
     }
 }

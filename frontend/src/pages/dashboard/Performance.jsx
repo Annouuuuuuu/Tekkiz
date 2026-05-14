@@ -1,358 +1,275 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Trophy, Target, Brain, Zap, Loader2, Flame, BarChart3, HelpCircle } from "lucide-react";
-import StatsCard from "@/components/dashboard/Performance/StatsCard";
+import { motion } from "framer-motion";
+import {
+  TrendingUp, Trophy, Target, Brain, Zap, Loader2, Flame,
+  BarChart3, Star, CheckCircle2, XCircle,
+} from "lucide-react";
 import GlobalScoreChart from "@/components/dashboard/Performance/GlobalScoreChart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import qcmGameService from "@/services/qcmGame.service";
 
-const PerformancePage = () => {
-  const { t } = useTranslation("common");
-  const [activeTab, setActiveTab] = useState("qcm");
+const difficultyColors = {
+  EASY:   { badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", bar: "bg-emerald-500" },
+  MEDIUM: { badge: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",   bar: "bg-yellow-400" },
+  HARD:   { badge: "bg-orange-500/10 text-orange-400 border-orange-500/20",   bar: "bg-orange-400" },
+  EXPERT: { badge: "bg-red-500/10 text-red-400 border-red-500/20",            bar: "bg-red-500" },
+};
+
+const gameModeColors = {
+  BLITZ:   "border-violet-500/20 bg-violet-500/8 text-violet-400",
+  RUSH:    "border-blue-500/20 bg-blue-500/8 text-blue-400",
+  CLASSIC: "border-emerald-500/20 bg-emerald-500/8 text-emerald-400",
+};
+
+function AccuracyRing({ value }) {
+  const size = 88;
+  const stroke = 9;
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (value / 100) * circ;
+  const color = value >= 70 ? "#22c55e" : value >= 50 ? "#eab308" : "#ef4444";
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.9s ease" }} />
+      </svg>
+      <span className="absolute text-base font-black" style={{ color }}>{Math.round(value)}%</span>
+    </div>
+  );
+}
+
+function StatTile({ icon: Icon, label, value, sub, accent }) {
+  return (
+    <div className={`rounded-2xl border p-5 flex flex-col gap-1.5 ${accent ? "border-primary/30 bg-primary/8" : "border-border bg-card"}`}>
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Icon className={`h-4 w-4 ${accent ? "text-primary" : ""}`} />
+        <span className="text-[11px] font-semibold uppercase tracking-wider">{label}</span>
+      </div>
+      <p className={`text-3xl font-black tabular-nums ${accent ? "text-primary" : ""}`}>{value}</p>
+      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+    </div>
+  );
+}
+
+export default function PerformancePage() {
   const [stats, setStats] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      setIsLoading(true);
-      try {
-        const response = await qcmGameService.getUserStats();
-        setStats(response.data || response);
-      } catch (err) {
-        console.error("Failed to fetch QCM stats:", err);
-        setError(err.message || "Failed to load statistics");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    qcmGameService.getUserStats()
+      .then((r) => setStats(r.data || r))
+      .catch((e) => setError(e.message || "Failed to load"))
+      .finally(() => setLoading(false));
+  }, []);
 
-    if (activeTab === "qcm") {
-      fetchStats();
-    }
-  }, [activeTab]);
-
-  // Difficulty colors
-  const difficultyColors = {
-    EASY: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    MEDIUM: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    HARD: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-    EXPERT: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  };
-
-  // Loading state
-  const renderLoading = () => (
-    <div className="flex items-center justify-center py-12">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
-        <p className="text-muted-foreground">{t("performance.loading")}</p>
-      </div>
-    </div>
-  );
-
-  // Error state
-  const renderError = () => (
-    <div className="text-center py-12">
-      <p className="text-destructive">{error}</p>
-    </div>
-  );
-
-  // No data state
-  const renderNoData = () => (
-    <div className="text-center py-12">
-      <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-      <h3 className="text-lg font-semibold mb-2">{t("performance.noData")}</h3>
-      <p className="text-muted-foreground">
-        {t("performance.noDataDescription")}
-      </p>
-    </div>
-  );
-
-  // QCM Performance Content
-  const renderQCMContent = () => {
-    if (isLoading) return renderLoading();
-    if (error) return renderError();
-    if (!stats || stats.totalGamesPlayed === 0) return renderNoData();
-
+  if (loading) {
     return (
-      <div className="space-y-6">
-        {/* Primary KPIs - Most Important Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatsCard
-            title={t("performance.avgScore")}
-            value={Math.round(stats.averageScore || 0)}
-            icon={TrendingUp}
-            description={t("performance.primaryMetric")}
-            className="border-primary/50 bg-primary/5"
-          />
-          <StatsCard
-            title={t("performance.accuracy")}
-            value={`${stats.overallAccuracy?.toFixed(0) || 0}%`}
-            icon={Target}
-            trend={stats.recentAccuracy > stats.overallAccuracy ? `+${(stats.recentAccuracy - stats.overallAccuracy).toFixed(0)}%` : null}
-            trendUp={stats.recentAccuracy > stats.overallAccuracy}
-          />
-          <StatsCard
-            title={t("performance.bestScore")}
-            value={stats.bestScore || 0}
-            icon={Trophy}
-          />
-          <StatsCard
-            title={t("performance.leaderboardPosition")}
-            value={`#${stats.leaderboardPosition || "-"}`}
-            icon={Trophy}
-            description={t("performance.outOfPlayers", { count: stats.totalPlayers || 0 })}
-          />
-        </div>
-
-        <Separator />
-
-        {/* Secondary Stats - Contextual Information */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatsCard
-            title={t("performance.gamesPlayed")}
-            value={stats.totalGamesPlayed}
-            icon={Brain}
-          />
-          <StatsCard
-            title={t("performance.currentStreak")}
-            value={`${stats.currentStreak || 0} ${t("performance.days")}`}
-            icon={Flame}
-          />
-          <StatsCard
-            title={t("performance.totalPoints")}
-            value={stats.totalPointsEarned || 0}
-            icon={Zap}
-          />
-          <StatsCard
-            title={t("performance.bestPerformingLevel")}
-            value={stats.bestPerformingLevel || "N/A"}
-            icon={BarChart3}
-          />
-        </div>
-
-        <Separator />
-
-        {/* Level & Progress Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Best Performing Level */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t("performance.bestPerformingLevel")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <Badge className={`text-lg px-4 py-1 ${difficultyColors[stats.bestPerformingLevel] || difficultyColors.EASY}`}>
-                  {stats.bestPerformingLevel || "N/A"}
-                </Badge>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {t("performance.bestLevelDescription")}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Progress Summary */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t("performance.progressSummary")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{stats.totalCorrectAnswers || 0}</p>
-                  <p className="text-xs text-muted-foreground">{t("performance.correctAnswers")}</p>
-                </div>
-                <div className="flex-1">
-                  <Progress value={stats.overallAccuracy || 0} className="h-2" />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {t("performance.questionsAnswered")}: {stats.totalQuestionsAnswered || 0}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Score Evolution Chart */}
-        <Separator />
-        <GlobalScoreChart 
-          recentGames={stats.recentGames || []} 
-          averageScore={stats.averageScore || 0} 
-        />
-
-        {/* Category Breakdown */}
-        {stats.categoryStats && stats.categoryStats.length > 0 && (
-          <>
-            <Separator />
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{t("performance.performanceByCategory")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {stats.categoryStats.map((category) => (
-                    <div key={category.categoryId} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{category.categoryName}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {category.gamesPlayed} {t("performance.games")} • {t("performance.avg")}: {Math.round(category.averageScore || 0)} pts
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Progress value={category.accuracy} className="h-2 flex-1" />
-                        <span className="text-sm font-medium w-12 text-right">
-                          {category.accuracy?.toFixed(0) || 0}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* Game Mode Breakdown */}
-        {stats.gameModeStats && stats.gameModeStats.length > 0 && (
-          <>
-            <Separator />
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{t("performance.performanceByGameMode")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {stats.gameModeStats.map((mode) => (
-                    <div key={mode.gameMode} className="p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline" className="text-sm">{mode.gameMode}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {mode.gamesPlayed} {t("performance.games")}
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{t("performance.avgScore")}</span>
-                          <span className="font-medium">{Math.round(mode.averageScore)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{t("performance.bestScore")}</span>
-                          <span className="font-medium">{mode.bestScore}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{t("performance.accuracy")}</span>
-                          <span className="font-medium">{mode.accuracy?.toFixed(0)}%</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{t("performance.totalQuestions")}</span>
-                          <span className="font-medium">{mode.totalQuestions}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* Recent Games */}
-        {stats.recentGames && stats.recentGames.length > 0 && (
-          <>
-            <Separator />
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{t("performance.recentGames")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.recentGames.map((game) => (
-                    <div 
-                      key={game.sessionId} 
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-center">
-                          <p className="text-lg font-bold">{game.score}</p>
-                          <p className="text-xs text-muted-foreground">pts</p>
-                        </div>
-                        <div>
-                          <p className="font-medium">{game.categoryName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {game.correctAnswers}/{game.totalQuestions} {t("performance.correct").toLowerCase()} • {game.accuracy?.toFixed(0) || 0}%
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className={difficultyColors[game.difficultyReached]}>
-                          {game.difficultyReached}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(game.completedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  };
+  }
 
-  // Smatch Performance Content (placeholder)
-  const renderSmatchContent = () => (
-    <div className="text-center py-12">
-      <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-      <h3 className="text-lg font-semibold mb-2">{t("performance.smatchComingSoon")}</h3>
-      <p className="text-muted-foreground">
-        {t("performance.smatchDescription")}
-      </p>
-    </div>
-  );
+  if (error) {
+    return <p className="text-center py-20 text-destructive">{error}</p>;
+  }
+
+  if (!stats || stats.totalGamesPlayed === 0) {
+    return (
+      <div className="px-6 py-10 max-w-4xl mx-auto">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stats</p>
+          <h1 className="mt-1 text-4xl font-black tracking-tight">Performance.</h1>
+        </div>
+        <div className="flex flex-col items-center py-24 gap-4 text-center">
+          <Target className="h-12 w-12 opacity-20" />
+          <h3 className="text-lg font-black">No data yet</h3>
+          <p className="text-sm text-muted-foreground">Play a few games to see your stats here.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">{t("performance.title")}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {t("performance.description")}
-        </p>
+    <div className="px-6 py-10 max-w-4xl mx-auto space-y-8">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stats · QCM</p>
+        <h1 className="mt-1 text-4xl font-black tracking-tight">Performance.</h1>
       </div>
 
-      {/* Game Type Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="qcm" className="flex items-center gap-2">
-            <HelpCircle className="h-4 w-4" />
-            {t("performance.qcm")}
-          </TabsTrigger>
-          <TabsTrigger value="smatch" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            {t("performance.smatch")}
-          </TabsTrigger>
-        </TabsList>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
 
-        <TabsContent value="qcm">
-          {renderQCMContent()}
-        </TabsContent>
+        {/* Hero banner */}
+        <div className="rounded-2xl border border-primary/20 bg-primary/8 p-7">
+          <div className="flex flex-wrap items-center gap-8">
+            <div>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Avg score</p>
+              <p className="text-6xl font-black text-primary tabular-nums leading-none">
+                {Math.round(stats.averageScore || 0)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">pts / game</p>
+            </div>
+            <div className="h-16 w-px bg-border hidden sm:block" />
+            <div className="flex flex-col items-center gap-1">
+              <AccuracyRing value={stats.overallAccuracy || 0} />
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Accuracy</p>
+              {stats.recentAccuracy > stats.overallAccuracy && (
+                <p className="text-[11px] text-emerald-400 font-semibold">
+                  +{(stats.recentAccuracy - stats.overallAccuracy).toFixed(0)}% recently
+                </p>
+              )}
+            </div>
+            <div className="ml-auto text-right hidden md:block">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Rank</p>
+              <p className="text-4xl font-black tabular-nums">#{stats.leaderboardPosition || "–"}</p>
+              <p className="text-xs text-muted-foreground">of {stats.totalPlayers || 0} players</p>
+            </div>
+          </div>
+        </div>
 
-        <TabsContent value="smatch">
-          {renderSmatchContent()}
-        </TabsContent>
-      </Tabs>
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatTile icon={Trophy} label="Best score" value={stats.bestScore || 0} accent />
+          <StatTile icon={Brain} label="Games" value={stats.totalGamesPlayed} />
+          <StatTile icon={Flame} label="Streak" value={`${stats.currentStreak || 0}d`} />
+          <StatTile icon={Zap} label="Total pts" value={(stats.totalPointsEarned || 0).toLocaleString()} />
+        </div>
+
+        {/* Correct / Wrong */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/6 p-5 flex items-center gap-4">
+            <CheckCircle2 className="h-9 w-9 text-emerald-400 shrink-0" />
+            <div>
+              <p className="text-3xl font-black text-emerald-400 tabular-nums">{stats.totalCorrectAnswers || 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Correct answers</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/6 p-5 flex items-center gap-4">
+            <XCircle className="h-9 w-9 text-red-400 shrink-0" />
+            <div>
+              <p className="text-3xl font-black text-red-400 tabular-nums">{stats.totalWrongAnswers || 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Wrong answers</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Best level */}
+        {stats.bestPerformingLevel && stats.bestPerformingLevel !== "N/A" && (
+          <div className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
+            <Star className="h-8 w-8 text-yellow-400 shrink-0" />
+            <div>
+              <p className="text-sm text-muted-foreground">Best performing level</p>
+              <span className={`inline-block mt-1 text-sm font-black border rounded-lg px-3 py-1 ${difficultyColors[stats.bestPerformingLevel]?.badge || ""}`}>
+                {stats.bestPerformingLevel}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Score chart */}
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Score history</p>
+          <GlobalScoreChart recentGames={stats.recentGames || []} averageScore={stats.averageScore || 0} />
+        </div>
+
+        {/* Category breakdown */}
+        {stats.categoryStats?.length > 0 && (
+          <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">By category</p>
+            </div>
+            <div className="space-y-4">
+              {stats.categoryStats.map((cat) => (
+                <div key={cat.categoryId}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-sm font-semibold">{cat.categoryName}</span>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {cat.gamesPlayed} games · {Math.round(cat.averageScore || 0)} avg pts
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all duration-700"
+                        style={{ width: `${cat.accuracy || 0}%` }} />
+                    </div>
+                    <span className="text-xs font-bold text-primary w-9 text-right tabular-nums">
+                      {(cat.accuracy || 0).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Game mode breakdown */}
+        {stats.gameModeStats?.length > 0 && (
+          <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">By game mode</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {stats.gameModeStats.map((mode) => (
+                <div key={mode.gameMode} className={`rounded-xl border p-4 space-y-2 ${gameModeColors[mode.gameMode] || "border-border bg-muted/30"}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider">{mode.gameMode}</span>
+                    <span className="text-xs text-muted-foreground">{mode.gamesPlayed} games</span>
+                  </div>
+                  {[
+                    { label: "Avg score", val: Math.round(mode.averageScore) },
+                    { label: "Best", val: mode.bestScore },
+                    { label: "Accuracy", val: `${(mode.accuracy || 0).toFixed(0)}%` },
+                  ].map(({ label, val }) => (
+                    <div key={label} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="font-bold">{val}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent games */}
+        {stats.recentGames?.length > 0 && (
+          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Recent games</p>
+            </div>
+            <div className="divide-y divide-border">
+              {stats.recentGames.map((game) => (
+                <div key={game.sessionId} className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/20 transition-colors">
+                  <div className="text-center w-14 shrink-0">
+                    <p className="text-2xl font-black text-primary tabular-nums">{game.score}</p>
+                    <p className="text-[10px] text-muted-foreground">pts</p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{game.categoryName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {game.correctAnswers}/{game.totalQuestions} correct · {(game.accuracy || 0).toFixed(0)}%
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`text-xs font-bold border rounded-lg px-2 py-0.5 ${difficultyColors[game.difficultyReached]?.badge || "text-muted-foreground border-border"}`}>
+                      {game.difficultyReached}
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(game.completedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </motion.div>
     </div>
   );
-};
-
-export default PerformancePage;
+}

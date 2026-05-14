@@ -39,11 +39,11 @@ async function login(email, password) {
     });
 
     // Extract data from response
-    const { token, user } = response.data || response;
+    const { accessToken, user } = response.data || response;
 
     // Store token
-    if (token) {
-      setAuthToken(token);
+    if (accessToken) {
+      setAuthToken(accessToken);
     }
 
     toast.success('Welcome back!');
@@ -51,7 +51,7 @@ async function login(email, password) {
     return {
       success: true,
       user,
-      token,
+      token: accessToken,
     };
   } catch (error) {
     const apiError = handleError(error, { showToast: false });
@@ -82,11 +82,11 @@ async function register(userData) {
     const response = await apiClient.post(ENDPOINTS.AUTH.REGISTER, userData);
 
     // Extract data from response
-    const { token, user } = response.data || response;
+    const { accessToken, user } = response.data || response;
 
     // Store token
-    if (token) {
-      setAuthToken(token);
+    if (accessToken) {
+      setAuthToken(accessToken);
     }
 
     toast.success('Account created successfully!');
@@ -94,7 +94,7 @@ async function register(userData) {
     return {
       success: true,
       user,
-      token,
+      token: accessToken,
     };
   } catch (error) {
     const apiError = handleError(error, { showToast: false });

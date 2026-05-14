@@ -86,6 +86,10 @@ public class Question {
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "submitted_by", nullable = true)
+    private User submittedBy;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

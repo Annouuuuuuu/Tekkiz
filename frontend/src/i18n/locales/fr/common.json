@@ -11,6 +11,10 @@
     "tagline": "Transformez votre apprentissage tech en expérience interactive et fun. Rejoignez notre communauté de passionnés.",
     "rights": "Tous droits réservés."
   },
+  "language": {
+    "fr": "Français",
+    "en": "English"
+  },
   "auth": {
     "welcomeBack": "Bienvenue ! Veuillez vous connecter pour continuer.",
     "createAccount": "Créez votre compte pour commencer.",
@@ -35,6 +39,7 @@
     "performance.qcm": "QCM",
     "performance.smatch": "SMATCH",
     "leaderboard": "Classement",
+    "contribute": "Contribuer",
     "settings": "Paramètres",
     "about": "À propos",
     "logout": "Se déconnecter"
@@ -176,7 +181,11 @@
     "deleteAccount": "Supprimer le compte",
     "deleteAccountDescription": "Supprimer définitivement votre compte et toutes vos données",
     "delete": "Supprimer",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront perdues."
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront perdues.",
+    "preferences": "Préférences",
+    "preferencesDescription": "Personnalisez votre expérience Tekizz",
+    "language": "Langue de l'interface",
+    "languageDescription": "Choisissez la langue utilisée sur toute la plateforme"
   },
   "play": {
     "title": "Choisissez votre jeu",

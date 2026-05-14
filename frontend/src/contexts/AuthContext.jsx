@@ -78,12 +78,11 @@ export const AuthProvider = ({ children }) => {
     const result = await authService.login(email, password);
 
     if (result.success) {
-      setUser(result.user);
-      setIsAuthenticated(true);
+      await checkAuthStatus();
     }
 
     return result;
-  }, []);
+  }, [checkAuthStatus]);
 
   /**
    * Register a new user
@@ -92,12 +91,11 @@ export const AuthProvider = ({ children }) => {
     const result = await authService.register(userData);
 
     if (result.success) {
-      setUser(result.user);
-      setIsAuthenticated(true);
+      await checkAuthStatus();
     }
 
     return result;
-  }, []);
+  }, [checkAuthStatus]);
 
   /**
    * Initiate OAuth login flow
@@ -109,12 +107,11 @@ export const AuthProvider = ({ children }) => {
   /**
    * Handle OAuth callback with token
    */
-  const handleOAuthCallback = useCallback((token) => {
+  const handleOAuthCallback = useCallback(async (token) => {
     const result = authService.handleOAuthCallback(token);
 
     if (result.success) {
-      // Fetch user data with the new token
-      checkAuthStatus();
+      await checkAuthStatus();
     }
 
     return result;

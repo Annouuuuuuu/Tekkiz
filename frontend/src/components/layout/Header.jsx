@@ -1,60 +1,54 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import NavBar from "../NavBar";
 import AuthModal from "../auth/AuthModal";
 
 const Header = () => {
   const { t } = useTranslation("common");
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
+  const [scrolled, setScrolled] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("signup");
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const fn = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  const open = (mode) => { setAuthMode(mode); setAuthOpen(true); };
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 transition-all duration-500">
-        <motion.div 
-          className={`
-            flex items-center justify-between transition-all duration-500 ease-in-out
-            ${isScrolled 
-              ? "w-full max-w-5xl bg-transparent backdrop-blur-xl border-y border-white/10 px-6 py-3 rounded-xl shadow-xl" 
-              : "w-full max-w-7xl bg-transparent border-transparent px-2 py-4 shadow-none"
-            }
-          `}
+      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 transition-all duration-300">
+        <div
+          className={`flex items-center justify-between w-full transition-all duration-300 ${
+            scrolled
+              ? "max-w-5xl bg-[#0d0d0d]/90 backdrop-blur-xl border border-white/[0.08] px-6 py-3 rounded-2xl shadow-2xl shadow-black/50"
+              : "max-w-7xl px-2 py-3"
+          }`}
         >
-          <div className="flex items-center gap-12">
-            <Link to="/" className="text-2xl font-black tracking-tighter">
-              Tekizz<span className="text-primary">.</span>
-            </Link>
+          <Link to="/" className="text-xl font-black tracking-tighter text-white">
+            Tekizz<span className="text-primary">.</span>
+          </Link>
 
-            <NavBar />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => open("login")}
+              className="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold text-white/45 hover:text-white/80 transition-colors"
+            >
+              {t("header.login")}
+            </button>
+            <button
+              onClick={() => open("signup")}
+              className="inline-flex items-center rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:brightness-110 hover:shadow-primary/35 transition-all"
+            >
+              {t("header.getStarted")}
+            </button>
           </div>
-
-          <div className="flex items-center gap-4">
-              <Button 
-                onClick={() => setIsAuthModalOpen(true)}
-                className="rounded-full px-6 bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
-              >
-                {t("header.getStarted")}
-              </Button>
-          </div>
-        </motion.div>
+        </div>
       </header>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        initialMode="signup"
-      />
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
     </>
   );
 };

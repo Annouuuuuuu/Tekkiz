@@ -85,4 +85,20 @@ public interface QcmGameService {
      * @return the leaderboard response
      */
     QcmLeaderboardResponse getLeaderboard(int page, int size, Long categoryId, String gameMode);
+
+    /**
+     * Reset all QCM statistics for a user (deletes all sessions and answers).
+     *
+     * @param userId the user ID
+     */
+    void resetUserStats(Long userId);
+
+    /**
+     * Validate that a user owns the given game session.
+     * Throws AccessDeniedException if the user does not own the session.
+     *
+     * @param sessionId the game session ID
+     * @param userId    the authenticated user ID
+     */
+    void validateSessionOwnership(Long sessionId, Long userId);
 }

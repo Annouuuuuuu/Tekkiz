@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+.env.dev
+.env.prod
 
 # IDE
 .vscode/
@@ -14,3 +16,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Setup scripts with embedded secrets
+setup-github-secrets.sh

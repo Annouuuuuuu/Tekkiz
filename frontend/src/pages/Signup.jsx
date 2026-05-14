@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 
 const Signup = () => {
   const { t } = useTranslation("common");
@@ -23,8 +23,7 @@ const Signup = () => {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    navigate("/dashboard");
-    return null;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleOAuthLogin = (provider) => {
@@ -85,7 +84,7 @@ const Signup = () => {
             {/* Error Message */}
             {error && (
               <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-500 text-sm">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
               </div>
             )}

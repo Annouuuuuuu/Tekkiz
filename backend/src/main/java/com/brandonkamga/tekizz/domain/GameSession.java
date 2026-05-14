@@ -96,6 +96,15 @@ public class GameSession {
     @Column(name = "max_timer_duration")
     private Integer maxTimerDuration; // Maximum time cap in seconds
 
+    @Column(name = "current_timer_seconds")
+    private Integer currentTimerSeconds; // Server-tracked timer value, updated on each answer
+
+    @Column(name = "last_answer_at")
+    private LocalDateTime lastAnswerAt; // Timestamp of last answer, used for server-side timer tracking
+
+    @Column(name = "tag_filter_json")
+    private String tagFilterJson; // Comma-separated tag IDs for filtering questions (null = no filter)
+
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 

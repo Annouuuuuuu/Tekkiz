@@ -29,7 +29,14 @@ public class GitHubOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
 
     @Override
     public String extractEmail(OAuth2User oauthUser) {
-        return oauthUser.getAttribute("email");
+        String email = oauthUser.getAttribute("email");
+        if (email == null || email.isBlank()) {
+            // GitHub users with private emails — fall back to a deterministic address
+            Object id = oauthUser.getAttribute("id");
+            String key = id != null ? id.toString() : oauthUser.getAttribute("login");
+            return key + "@github.local";
+        }
+        return email;
     }
 
     @Override

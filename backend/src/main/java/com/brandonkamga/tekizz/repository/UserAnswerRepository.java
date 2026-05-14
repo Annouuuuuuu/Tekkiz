@@ -40,4 +40,8 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswer, Long> {
     // New method for stats - get all answers by user
     @Query("SELECT ua FROM UserAnswer ua WHERE ua.gameSession.user.id = :userId")
     List<UserAnswer> findByGameSessionUserId(@Param("userId") Long userId);
+
+    // Batch query: returns [userId, levelName] pairs for all users in the set — avoids N+1 in leaderboard
+    @Query("SELECT ua.gameSession.user.id, ua.question.level.levelName FROM UserAnswer ua WHERE ua.gameSession.user.id IN :userIds")
+    List<Object[]> findUserIdAndDifficultyByUserIds(@Param("userIds") List<Long> userIds);
 }

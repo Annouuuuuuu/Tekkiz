@@ -1,164 +1,149 @@
-/**
- * QCM Game Configuration Screen
- * 
- * Allows users to configure their QCM game session including:
- * - Category selection
- * - Tag filtering
- * - Game mode selection (BLITZ, RUSH, CLASSIC)
- * 
- * Game Modes:
- * - BLITZ: 60s initial, 90s max - Fast-paced, high points
- * - RUSH: 120s initial, 150s max - Medium pace, balanced
- * - CLASSIC: 300s initial, 360s max - Long game, endurance
- * 
- * Note: In-game difficulty progression is score-based:
- * - Everyone starts at EASY
- * - Progresses to MEDIUM/HARD/EXPERT based on points earned
- */
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QcmGameProvider, useQcmGame } from '../../contexts/QcmGameContext';
 import qcmGameService from '../../services/qcmGame.service';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Label } from '../../components/ui/label';
-import { Badge } from '../../components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../components/ui/select';
-import { Loader2, Play, BookOpen, Hash, Zap, Timer, Clock } from 'lucide-react';
+import { Loader2, HelpCircle, Hash, Zap, Timer, Clock, ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react';
 
-// Game modes with their configurations
-const GAME_MODES = {
-  BLITZ: {
+const MODES = [
+  {
+    key: 'BLITZ',
+    label: 'Blitz',
+    sub: '2 min',
+    icon: Zap,
     initialTime: 60,
     maxTime: 90,
-    label: 'Blitz',
-    description: '1 min',
-    icon: Zap,
-    color: 'text-red-500',
-    borderColor: 'border-red-500',
-    bgColor: 'bg-red-500/10',
+    desc: 'Sprint intense. Questions enchaînées à vitesse maximale.',
   },
-  RUSH: {
+  {
+    key: 'RUSH',
+    label: 'Rush',
+    sub: '5 min',
+    icon: Timer,
     initialTime: 120,
     maxTime: 150,
-    label: 'Rush',
-    description: '2 min',
-    icon: Timer,
-    color: 'text-yellow-500',
-    borderColor: 'border-yellow-500',
-    bgColor: 'bg-yellow-500/10',
+    desc: 'Rythme soutenu. Bon équilibre entre vitesse et précision.',
   },
-  CLASSIC: {
+  {
+    key: 'CLASSIC',
+    label: 'Classic',
+    sub: '10 min',
+    icon: Clock,
     initialTime: 300,
     maxTime: 360,
-    label: 'Classic',
-    description: '5 min',
-    icon: Clock,
-    color: 'text-green-500',
-    borderColor: 'border-green-500',
-    bgColor: 'bg-green-500/10',
+    desc: 'Session longue. Conçu pour atteindre les niveaux EXPERT.',
   },
-};
+];
+
+export const GAME_MODES = Object.fromEntries(
+  MODES.map(m => [m.key, { initialTime: m.initialTime, maxTime: m.maxTime, label: m.label, description: m.sub, icon: m.icon }])
+);
+
+const STEPS = ['Category', 'Tags', 'Mode', 'Options'];
+
+function StepIndicator({ step, total, labels }) {
+  return (
+    <div className="flex items-center gap-2">
+      {labels.map((label, i) => {
+        const idx = i + 1;
+        const done = idx < step;
+        const active = idx === step;
+        return (
+          <div key={label} className="flex items-center gap-2">
+            <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black transition-colors ${
+              done ? 'bg-primary text-primary-foreground' :
+              active ? 'border-2 border-primary text-primary' :
+              'border border-border text-muted-foreground'
+            }`}>
+              {done ? <Check className="h-3 w-3" /> : idx}
+            </div>
+            <span className={`text-xs font-semibold hidden sm:block ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
+              {label}
+            </span>
+            {i < labels.length - 1 && (
+              <div className={`w-6 h-px mx-1 ${done ? 'bg-primary' : 'bg-border'}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function QcmGameConfigContent() {
-  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const { setSession, setConfig, setLoading, setError } = useQcmGame();
 
-  // Form state
+  const [step, setStep] = useState(1);
   const [categories, setCategories] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [gameMode, setGameMode] = useState('CLASSIC');
+  const [gameMode, setGameMode] = useState(null);
   const [showHints, setShowHints] = useState(true);
   const [showExplanations, setShowExplanations] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tagsLoading, setTagsLoading] = useState(false);
 
-  // Fetch categories on mount
+  // Steps: 1=category, 2=tags (skip if none), 3=mode, 4=options
+  const steps = selectedCategory?.hasTags !== false && availableTags.length > 0
+    ? STEPS
+    : ['Category', 'Mode', 'Options'];
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const response = await qcmGameService.getCategories();
-        setCategories(response.data || response);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        setError('Failed to load categories');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    qcmGameService.getCategories()
+      .then(r => setCategories(r.data || r))
+      .catch(() => setError('Failed to load categories'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-    fetchCategories();
-  }, [setError]);
-
-  // Fetch tags when category changes
-  useEffect(() => {
-    const fetchTags = async () => {
-      if (!selectedCategory) {
-        setAvailableTags([]);
-        return;
-      }
-
-      try {
-        const response = await qcmGameService.getTagsByCategory(selectedCategory);
-        setAvailableTags(response.data || response);
-      } catch (error) {
-        console.error('Failed to fetch tags:', error);
-        setAvailableTags([]);
-      }
-    };
-
-    fetchTags();
+  const handleSelectCategory = async (cat) => {
+    setSelectedCategory(cat);
     setSelectedTags([]);
-  }, [selectedCategory]);
-
-  const handleTagToggle = (tagId) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
-    );
+    setTagsLoading(true);
+    try {
+      const r = await qcmGameService.getTagsByCategory(cat.id);
+      const tags = r.data || r;
+      setAvailableTags(tags);
+      // If no tags, skip tags step
+      setStep(tags.length > 0 ? 2 : 3);
+    } catch {
+      setAvailableTags([]);
+      setStep(3);
+    } finally {
+      setTagsLoading(false);
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSelectMode = (key) => {
+    setGameMode(key);
+    setStep(4);
+  };
 
-    if (!selectedCategory) {
-      setError('Please select a category');
-      return;
-    }
+  const toggleTag = (id) =>
+    setSelectedTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
+  const handleSubmit = async () => {
+    if (!selectedCategory || !gameMode) return;
     setIsSubmitting(true);
     setLoading(true);
-
     try {
       const config = {
-        categoryId: parseInt(selectedCategory, 10),
+        categoryId: selectedCategory.id,
         tagIds: selectedTags.length > 0 ? selectedTags : undefined,
-        gameMode: gameMode,
+        gameMode,
         showHints,
         showExplanations,
       };
-
+      // Persist config for QcmGamePlay (separate provider instance)
+      sessionStorage.setItem('qcmConfig', JSON.stringify({ showHints, showExplanations }));
       const response = await qcmGameService.createGameSession(config);
       setSession(response);
       setConfig(config);
-
-      // Navigate to game play screen
       navigate(`/dashboard/play/qcm/${response.sessionId}`);
     } catch (error) {
-      console.error('Failed to create game session:', error);
       setError(error.message || 'Failed to create game session');
     } finally {
       setIsSubmitting(false);
@@ -166,165 +151,198 @@ function QcmGameConfigContent() {
     }
   };
 
-  return (
-    <div className="container max-w-3xl mx-auto py-8 px-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">{t('qcm.configureGame')}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t('qcm.configureDescription')}
-        </p>
-      </div>
+  const goBack = () => {
+    if (step === 1) navigate('/dashboard/play');
+    else if (step === 2) { setStep(1); }
+    else if (step === 3) { setStep(availableTags.length > 0 ? 2 : 1); }
+    else if (step === 4) { setStep(3); }
+  };
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-5">
-          {/* Category Selection */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BookOpen className="h-4 w-4" />
-                {t('qcm.category')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+  const visibleSteps = availableTags.length > 0 ? STEPS : ['Category', 'Mode', 'Options'];
+  const visibleStep = availableTags.length > 0 ? step : (step >= 3 ? step - 1 : step);
+
+  return (
+    <div className="min-h-screen bg-background px-6 py-10">
+      <div className="max-w-2xl mx-auto space-y-8">
+
+        {/* Back + Step indicator */}
+        <div className="flex items-center justify-between">
+          <button onClick={goBack}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            {step === 1 ? 'Back' : 'Previous'}
+          </button>
+          <StepIndicator step={visibleStep} total={visibleSteps.length} labels={visibleSteps} />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/30 bg-primary/15">
+            <HelpCircle className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black leading-none">QCM</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Multiple choice · ranked</p>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+
+          {/* ── Step 1: Category ── */}
+          {step === 1 && (
+            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }} className="space-y-4">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Choose a category</p>
               {isLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('qcm.selectCategory')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Tag Selection */}
-          {selectedCategory && availableTags.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Hash className="h-4 w-4" />
-                  {t('qcm.tags')}
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  {t('qcm.tagsDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => handleTagToggle(tag.id)}
+                <div className="space-y-3">
+                  {categories.map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 cursor-pointer hover:bg-muted/20 transition-all"
+                      onClick={() => handleSelectCategory(cat)}
                     >
-                      {tag.name}
-                    </Badge>
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/20 shrink-0">
+                          <BookOpen className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-black">{cat.name}</p>
+                          {cat.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 truncate">{cat.description}</p>
+                          )}
+                        </div>
+                        {tagsLoading && selectedCategory?.id === cat.id
+                          ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+                          : <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-60 transition-opacity shrink-0" />
+                        }
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </motion.div>
           )}
 
-          {/* Game Mode Selection */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('qcm.gameMode')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-3">
-                {Object.entries(GAME_MODES).map(([key, mode]) => {
-                  const IconComponent = mode.icon;
-                  const isSelected = gameMode === key;
+          {/* ── Step 2: Tags ── */}
+          {step === 2 && (
+            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }} className="space-y-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Filter by tags</p>
+                <p className="text-xs text-muted-foreground mt-1">Optional — leave empty to include all topics in <span className="font-semibold text-foreground">{selectedCategory?.name}</span>.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map(tag => {
+                  const sel = selectedTags.includes(tag.id);
+                  return (
+                    <button key={tag.id} type="button" onClick={() => toggleTag(tag.id)}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+                        sel
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground hover:border-primary/40'
+                      }`}>
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={() => setStep(3)}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors">
+                {selectedTags.length > 0
+                  ? `Continue with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`
+                  : 'Continue (all topics)'
+                }
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </motion.div>
+          )}
+
+          {/* ── Step 3: Mode ── */}
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }} className="space-y-4">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Select mode</p>
+              <div className="space-y-3">
+                {MODES.map((mode) => {
+                  const Icon = mode.icon;
                   return (
                     <div
-                      key={key}
-                      onClick={() => setGameMode(key)}
-                      className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
-                        isSelected
-                          ? `${mode.borderColor} ${mode.bgColor}`
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      key={mode.key}
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 cursor-pointer hover:bg-muted/20 transition-all"
+                      onClick={() => handleSelectMode(mode.key)}
                     >
-                      <div className="flex flex-col items-center text-center">
-                        <IconComponent className={`h-6 w-6 mb-1 ${mode.color}`} />
-                        <span className="font-semibold text-sm">{mode.label}</span>
-                        <span className="text-xs text-muted-foreground">{mode.description}</span>
+                      <div className="flex items-center gap-5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted/20 shrink-0">
+                          <Icon className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-black">{mode.label}</h3>
+                            <span className="text-xs text-muted-foreground">{mode.sub}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{mode.desc}</p>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-60 transition-opacity shrink-0" />
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
+            </motion.div>
+          )}
 
-          {/* Game Options */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('qcm.options')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="hints"
-                    checked={showHints}
-                    onChange={(e) => setShowHints(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="hints" className="text-sm">{t('qcm.showHints')}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="explanations"
-                    checked={showExplanations}
-                    onChange={(e) => setShowExplanations(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="explanations" className="text-sm">{t('qcm.showExplanations')}</Label>
-                </div>
+          {/* ── Step 4: Options ── */}
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }} className="space-y-6">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Game options</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {selectedCategory?.name} · {MODES.find(m => m.key === gameMode)?.label} · {MODES.find(m => m.key === gameMode)?.sub}
+                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={!selectedCategory || isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('qcm.creating')}
-              </>
-            ) : (
-              <>
-                <Play className="mr-2 h-4 w-4" />
-                {t('qcm.startGame')}
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
+              <div className="rounded-2xl border border-border bg-card divide-y divide-border">
+                {[
+                  { id: 'hints', label: 'Show hints', sub: 'Reveal a hint before answering', value: showHints, set: setShowHints },
+                  { id: 'expl', label: 'Show explanations', sub: 'Display explanation after each answer', value: showExplanations, set: setShowExplanations },
+                ].map(opt => (
+                  <div key={opt.id} className="flex items-center justify-between gap-4 p-5">
+                    <div>
+                      <p className="text-sm font-semibold">{opt.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{opt.sub}</p>
+                    </div>
+                    <button type="button" onClick={() => opt.set(!opt.value)}
+                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${opt.value ? 'bg-primary' : 'bg-border'}`}>
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${opt.value ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors disabled:opacity-40"
+              >
+                {isSubmitting
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating session…</>
+                  : <><ArrowRight className="h-4 w-4" /> Start game</>
+                }
+              </button>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
 
-// Wrapper component with provider
 export default function QcmGameConfig() {
   return (
     <QcmGameProvider>
@@ -332,5 +350,3 @@ export default function QcmGameConfig() {
     </QcmGameProvider>
   );
 }
-
-export { GAME_MODES };

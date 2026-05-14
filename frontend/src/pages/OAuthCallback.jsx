@@ -1,24 +1,28 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { handleOAuthCallback } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get("token");
-    
-    if (token) {
-      // Store the token
-      localStorage.setItem("auth_token", token);
-      
-      // Redirect to dashboard
-      navigate("/dashboard");
-    } else {
-      // No token, redirect to home with error
+
+    if (!token) {
       navigate("/?error=oauth_failed");
+      return;
     }
-  }, [searchParams, navigate]);
+
+    handleOAuthCallback(token).then((result) => {
+      if (result.success) {
+        navigate("/dashboard");
+      } else {
+        navigate("/?error=oauth_failed");
+      }
+    });
+  }, [searchParams, navigate, handleOAuthCallback]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

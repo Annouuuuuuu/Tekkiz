@@ -2,6 +2,7 @@ package com.brandonkamga.tekizz.controller;
 
 import com.brandonkamga.tekizz.domain.User;
 import com.brandonkamga.tekizz.dto.ApiResponse;
+import org.springframework.security.access.AccessDeniedException;
 import com.brandonkamga.tekizz.dto.qcm.QcmGameConfigRequest;
 import com.brandonkamga.tekizz.dto.qcm.QcmGameResultResponse;
 import com.brandonkamga.tekizz.dto.qcm.QcmGameSessionResponse;
@@ -191,11 +192,17 @@ public class QcmGameController {
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<QcmUserStatsResponse>> getUserStats(
             @AuthenticationPrincipal UserDetails userDetails) {
-        
         Long userId = extractUserId(userDetails);
         QcmUserStatsResponse response = qcmGameService.getUserStats(userId);
-        
         return ResponseEntity.ok(ApiResponse.success(response, "Stats retrieved successfully"));
+    }
+
+    @DeleteMapping("/stats")
+    public ResponseEntity<ApiResponse<Void>> resetUserStats(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = extractUserId(userDetails);
+        qcmGameService.resetUserStats(userId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Stats reset successfully"));
     }
 
     /**
@@ -238,11 +245,7 @@ public class QcmGameController {
     }
 
     private void validateSessionOwnership(Long sessionId, UserDetails userDetails) {
-        // In a real implementation, you would verify that the authenticated user
-        // owns the game session they're trying to access
-        // This is a placeholder for that validation
-        if (userDetails == null) {
-            throw new IllegalStateException("User not authenticated");
-        }
+        Long userId = extractUserId(userDetails);
+        qcmGameService.validateSessionOwnership(sessionId, userId);
     }
 }

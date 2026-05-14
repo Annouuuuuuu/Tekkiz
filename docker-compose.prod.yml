@@ -1,0 +1,123 @@
+# =============================================================================
+# Tekizz — Production Stack
+# =============================================================================
+#
+# Services: PostgreSQL · Backend (Spring Boot) · Frontend (Nginx/SPA)
+#
+# Prerequisites on the server:
+#   - Docker + Docker Compose plugin installed
+#   - Traefik running on network "traefik-public" (see /root/traefik/)
+#   - .env file at /root/tekizz/.env  (copy from .env.example, fill secrets)
+#
+# First-time setup:
+#   mkdir -p /root/tekizz && cd /root/tekizz
+#   cp .env.example .env && nano .env
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Daily operations:
+#   docker compose -f docker-compose.prod.yml ps
+#   docker compose -f docker-compose.prod.yml logs -f backend
+#   docker compose -f docker-compose.prod.yml restart backend
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: tekizz-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:         ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval:     10s
+      timeout:      5s
+      retries:      5
+      start_period: 15s
+    networks:
+      - tekizz-internal
+
+  # ---------------------------------------------------------------------------
+  # Backend API — Spring Boot (port 8080)
+  # API: https://api.tekizz.lescracks.com
+  # ---------------------------------------------------------------------------
+  backend:
+    image: brandoniscoding/backend-tekizz:latest
+    container_name: tekizz-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_DDL_AUTO:-update}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:         ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval:     30s
+      timeout:      10s
+      retries:      5
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tekizz-api.rule=Host(`api.tekizz.lescracks.com`)"
+      - "traefik.http.routers.tekizz-api.entrypoints=websecure"
+      - "traefik.http.routers.tekizz-api.tls.certresolver=le"
+      - "traefik.http.services.tekizz-api.loadbalancer.server.port=8080"
+      - "traefik.http.routers.tekizz-api-http.rule=Host(`api.tekizz.lescracks.com`)"
+      - "traefik.http.routers.tekizz-api-http.entrypoints=web"
+      - "traefik.http.routers.tekizz-api-http.middlewares=tekizz-https-redirect"
+    networks:
+      - tekizz-internal
+      - traefik-public
+
+  # ---------------------------------------------------------------------------
+  # Frontend — React SPA servie par Nginx
+  # Site: https://tekizz.lescracks.com
+  # ---------------------------------------------------------------------------
+  frontend:
+    image: brandoniscoding/frontend-tekizz:latest
+    container_name: tekizz-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tekizz.rule=Host(`tekizz.lescracks.com`)"
+      - "traefik.http.routers.tekizz.entrypoints=websecure"
+      - "traefik.http.routers.tekizz.tls.certresolver=le"
+      - "traefik.http.services.tekizz.loadbalancer.server.port=80"
+      - "traefik.http.routers.tekizz-http.rule=Host(`tekizz.lescracks.com`)"
+      - "traefik.http.routers.tekizz-http.entrypoints=web"
+      - "traefik.http.middlewares.tekizz-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.tekizz-https-redirect.redirectscheme.permanent=true"
+      - "traefik.http.routers.tekizz-http.middlewares=tekizz-https-redirect"
+    networks:
+      - tekizz-internal
+      - traefik-public
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: tekizz_postgres_data
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  tekizz-internal:
+    name: tekizz-internal
+    driver: bridge
+
+  traefik-public:
+    name: traefik-public
+    external: true

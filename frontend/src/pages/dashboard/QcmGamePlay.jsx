@@ -1,514 +1,426 @@
-/**
- * QCM Game Play Screen
- * 
- * Main game interface where users:
- * - View current question
- * - Select answers
- * - See global timer countdown
- * - Track score and lives
- * - View answer feedback
- */
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QcmGameProvider, useQcmGame } from '../../contexts/QcmGameContext';
 import qcmGameService from '../../services/qcmGame.service';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Progress } from '../../components/ui/progress';
 import {
-  Heart,
-  Clock,
-  Trophy,
-  Loader2,
-  Lightbulb,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
-  AlertTriangle,
+  Heart, Clock, Trophy, Loader2, Lightbulb,
+  CheckCircle2, XCircle, ArrowRight, AlertTriangle, Zap,
 } from 'lucide-react';
 
-// Format time as MM:SS
-function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+function fmt(s) {
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// Global Timer component with max time cap
-function GlobalTimer({ timeRemaining, totalTime, maxTime }) {
-  const percentage = maxTime > 0 ? (timeRemaining / maxTime) * 100 : 100;
-  const isLow = timeRemaining <= 30;
-  const isOverInitial = timeRemaining > totalTime;
+const LABELS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+const DIFF_STYLE = {
+  EASY:   'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+  MEDIUM: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10',
+  HARD:   'text-orange-400 border-orange-500/30 bg-orange-500/10',
+  EXPERT: 'text-red-400 border-red-500/30 bg-red-500/10',
+};
+
+function TimerBar({ remaining, max }) {
+  const pct = max > 0 ? (remaining / max) * 100 : 100;
+  const urgent = remaining <= 20;
+  const warn = remaining <= 60 && remaining > 20;
+  const color = urgent ? 'bg-red-500' : warn ? 'bg-yellow-400' : 'bg-primary';
 
   return (
-    <div className="flex items-center gap-2">
-      <Clock className={`h-5 w-5 ${isLow ? 'text-destructive animate-pulse' : 'text-muted-foreground'}`} />
-      <div className="flex-1">
-        <Progress
-          value={percentage}
-          className={`h-2 ${isLow ? 'bg-destructive/20' : ''} ${isOverInitial ? 'bg-green-500/20' : ''}`}
-        />
+    <div className="flex items-center gap-3">
+      <Clock className={`h-4 w-4 shrink-0 ${urgent ? 'text-red-400 animate-pulse' : 'text-muted-foreground'}`} />
+      <div className="relative flex-1 h-1.5 bg-white/8 rounded-full overflow-hidden">
+        <motion.div className={`absolute inset-y-0 left-0 rounded-full ${color}`}
+          style={{ width: `${pct}%` }} transition={{ duration: 0.6 }} />
       </div>
-      <span className={`font-mono font-bold ${isLow ? 'text-destructive' : ''} ${isOverInitial ? 'text-green-500' : ''}`}>
-        {formatTime(timeRemaining)}
+      <span className={`font-mono text-sm font-black w-10 text-right tabular-nums ${urgent ? 'text-red-400' : ''}`}>
+        {fmt(remaining)}
       </span>
     </div>
   );
 }
 
-// Lives display component
-function LivesDisplay({ lives }) {
+function Hearts({ count }) {
   return (
-    <div className="flex items-center gap-1">
-      {Array.from({ length: lives }).map((_, i) => (
-        <Heart key={i} className="h-5 w-5 fill-destructive text-destructive" />
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: Math.max(count, 0) }).map((_, i) => (
+        <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.06 }}>
+          <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+        </motion.div>
       ))}
-      {lives === 0 && (
-        <span className="text-destructive text-sm font-medium">No lives remaining</span>
-      )}
+      {count === 0 && <span className="text-xs text-red-400 font-semibold">No lives</span>}
     </div>
   );
 }
 
-// Answer option component
-function AnswerOption({ answer, selected, correct, revealed, onClick, disabled }) {
-  let borderColor = 'border-border';
-  let bgColor = 'bg-card';
+function AnswerBtn({ answer, index, selected, correct, revealed, onClick, disabled }) {
+  let ring = 'border-white/10 bg-white/4';
+  let labelRing = 'bg-white/10 text-foreground';
 
   if (revealed) {
     if (correct) {
-      borderColor = 'border-green-500';
-      bgColor = 'bg-green-50 dark:bg-green-950/30';
+      ring = 'border-emerald-500 bg-emerald-500/12 shadow-lg shadow-emerald-500/10';
+      labelRing = 'bg-emerald-500/30 text-emerald-300';
     } else if (selected && !correct) {
-      borderColor = 'border-destructive';
-      bgColor = 'bg-red-50 dark:bg-red-950/30';
+      ring = 'border-red-500 bg-red-500/12';
+      labelRing = 'bg-red-500/30 text-red-300';
     }
   } else if (selected) {
-    borderColor = 'border-primary';
-    bgColor = 'bg-primary/10';
+    ring = 'border-primary bg-primary/12 shadow-lg shadow-primary/15';
+    labelRing = 'bg-primary/30 text-primary';
   }
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full p-4 text-left rounded-lg border-2 transition-all ${borderColor} ${bgColor} ${
-        !disabled && !revealed ? 'hover:border-primary/50 hover:bg-primary/5 cursor-pointer' : 'cursor-default'
-      } ${disabled ? 'opacity-50' : ''}`}
+      whileHover={!disabled && !revealed ? { scale: 1.015 } : {}}
+      whileTap={!disabled && !revealed ? { scale: 0.985 } : {}}
+      className={`w-full p-4 text-left rounded-2xl border-2 transition-all duration-150 ${ring} ${
+        !disabled && !revealed ? 'cursor-pointer hover:border-primary/50' : 'cursor-default'
+      }`}
     >
-      <div className="flex items-center gap-3">
-        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-muted font-medium">
-          {String.fromCharCode(65 + answer.displayOrder - 1)}
+      <div className="flex items-center gap-4">
+        <span className={`shrink-0 flex items-center justify-center w-9 h-9 rounded-xl text-sm font-black transition-colors ${labelRing}`}>
+          {LABELS[index]}
         </span>
-        <span className="flex-1">{answer.content}</span>
-        {revealed && correct && (
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-        )}
-        {revealed && selected && !correct && (
-          <XCircle className="h-5 w-5 text-destructive" />
-        )}
+        <span className="flex-1 text-sm leading-snug font-medium">{answer.content}</span>
+        {revealed && correct && <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />}
+        {revealed && selected && !correct && <XCircle className="h-5 w-5 text-red-400 shrink-0" />}
       </div>
-    </button>
+    </motion.button>
   );
 }
 
-// Main game content
 function QcmGamePlayContent() {
   const { sessionId } = useParams();
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
-  
+
   const {
-    currentQuestion,
-    questionIndex,
-    score,
-    correctAnswers,
-    wrongAnswers,
-    livesRemaining,
-    isLoading,
-    isGameOver,
-    lastAnswerResult,
-    sessionState,
-    globalTimerDuration, // Initial time from context
-    maxTimerDuration,    // Max time cap from context
-    gameMode,            // Game mode from context
-    setSession,
-    setQuestion,
-    updateGameState,
-    setLoading,
-    setError,
-    gameOver,
-    config,
+    currentQuestion, questionIndex, score, livesRemaining,
+    isLoading, isGameOver, lastAnswerResult, config,
+    globalTimerDuration, maxTimerDuration,
+    setSession, setQuestion, updateGameState, setLoading, setError, gameOver,
   } = useQcmGame();
 
-  const [selectedAnswerId, setSelectedAnswerId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Config comes from sessionStorage (separate QcmGameProvider instance per page)
+  const savedConfig = useMemo(() => {
+    try { return JSON.parse(sessionStorage.getItem('qcmConfig') || '{}'); } catch { return {}; }
+  }, []);
+  const hintsEnabled = savedConfig.showHints !== false;
+  const explanationsEnabled = savedConfig.showExplanations !== false;
+
+  const [selectedId, setSelectedId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [globalTimeRemaining, setGlobalTimeRemaining] = useState(0);
-  const [timerStarted, setTimerStarted] = useState(false);
-  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [timerOn, setTimerOn] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const timerRef = useRef(null);
 
-  // Fetch session state on mount to get timer duration
   useEffect(() => {
-    const fetchSessionState = async () => {
-      if (!sessionId || sessionLoaded) return;
-      
-      try {
-        setLoading(true);
-        const sessionData = await qcmGameService.getSessionState(sessionId);
-        setSession(sessionData);
-        setSessionLoaded(true);
-      } catch (error) {
-        console.error('Failed to fetch session state:', error);
-        setError(error.message || 'Failed to load game session');
-        navigate('/dashboard/play');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!sessionId || loaded) return;
+    setLoading(true);
+    qcmGameService.getSessionState(sessionId)
+      .then((data) => { setSession(data); setLoaded(true); })
+      .catch((e) => { setError(e.message); navigate('/dashboard/play'); })
+      .finally(() => setLoading(false));
+  }, [sessionId, loaded]);
 
-    fetchSessionState();
-  }, [sessionId, sessionLoaded, setSession, setLoading, setError, navigate]);
-
-  // Initialize global timer from context
   useEffect(() => {
-    if (globalTimerDuration && !timerStarted) {
-      setGlobalTimeRemaining(globalTimerDuration);
-      setTimerStarted(true);
+    if (globalTimerDuration && !timerOn) {
+      setTimeLeft(globalTimerDuration);
+      setTimerOn(true);
     }
-  }, [globalTimerDuration, timerStarted]);
+  }, [globalTimerDuration, timerOn]);
 
-  // Apply time adjustment from answer result
   useEffect(() => {
     if (lastAnswerResult?.timeAdjustment && maxTimerDuration) {
-      setGlobalTimeRemaining(prev => {
-        const newTime = prev + lastAnswerResult.timeAdjustment;
-        // Cap at max time
-        return Math.min(Math.max(newTime, 0), maxTimerDuration);
-      });
+      setTimeLeft((p) => Math.min(Math.max(p + lastAnswerResult.timeAdjustment, 0), maxTimerDuration));
     }
-  }, [lastAnswerResult?.timeAdjustment, maxTimerDuration]);
+  }, [lastAnswerResult?.timeAdjustment]);
 
-  // Global timer countdown
   useEffect(() => {
-    if (timerStarted && globalTimeRemaining > 0 && !isGameOver) {
+    if (timerOn && timeLeft > 0 && !isGameOver) {
       timerRef.current = setInterval(() => {
-        setGlobalTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            handleTimerExpired();
-            return 0;
-          }
-          return prev - 1;
+        setTimeLeft((p) => {
+          if (p <= 1) { clearInterval(timerRef.current); onTimerEnd(); return 0; }
+          return p - 1;
         });
       }, 1000);
     }
+    return () => clearInterval(timerRef.current);
+  }, [timerOn, isGameOver]);
 
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [timerStarted, isGameOver]);
-
-  // Handle timer expiration
-  const handleTimerExpired = useCallback(async () => {
-    try {
-      await qcmGameService.abandonGameSession(sessionId);
-      navigate(`/dashboard/play/qcm/${sessionId}/results`);
-    } catch (error) {
-      console.error('Failed to end game:', error);
-      navigate(`/dashboard/play/qcm/${sessionId}/results`);
-    }
+  const onTimerEnd = useCallback(async () => {
+    try { await qcmGameService.abandonGameSession(sessionId); } catch (_) {}
+    navigate(`/dashboard/play/qcm/${sessionId}/results`);
   }, [sessionId, navigate]);
 
-  // Fetch next question
-  const fetchNextQuestion = useCallback(async () => {
+  const fetchNext = useCallback(async () => {
     if (!sessionId) return;
-    
     setLoading(true);
-    setSelectedAnswerId(null);
+    setSelectedId(null);
     setShowHint(false);
-
     try {
-      const response = await qcmGameService.getNextQuestion(sessionId);
-      setQuestion(response);
-    } catch (error) {
-      console.error('Failed to fetch question:', error);
-      if (error.message?.includes('completed') || error.message?.includes('Game over')) {
-        gameOver();
-      } else {
-        setError(error.message || 'Failed to load question');
-      }
-    } finally {
-      setLoading(false);
-    }
+      const res = await qcmGameService.getNextQuestion(sessionId);
+      setQuestion(res);
+    } catch (e) {
+      if (e.message?.includes('completed') || e.message?.includes('Game over')) gameOver();
+      else setError(e.message);
+    } finally { setLoading(false); }
   }, [sessionId, setQuestion, setLoading, setError, gameOver]);
 
-  // Load first question after session is loaded
   useEffect(() => {
-    if (sessionLoaded && sessionId && !currentQuestion) {
-      fetchNextQuestion();
-    }
-  }, [sessionLoaded, sessionId, currentQuestion, fetchNextQuestion]);
+    if (loaded && sessionId && !currentQuestion) fetchNext();
+  }, [loaded, sessionId, currentQuestion, fetchNext]);
 
-  // Handle answer submission
-  const handleSubmitAnswer = async (answerId = selectedAnswerId) => {
-    if (!answerId || isSubmitting || !currentQuestion) return;
 
-    setIsSubmitting(true);
-
+  const submit = async (id = selectedId) => {
+    if (!id || submitting || !currentQuestion) return;
+    setSubmitting(true);
     try {
-      const response = await qcmGameService.submitAnswer(sessionId, {
+      const res = await qcmGameService.submitAnswer(sessionId, {
         questionId: currentQuestion.questionId,
-        selectedAnswerId: answerId,
+        selectedAnswerId: id,
         timeTakenSeconds: 0,
         usedHint: showHint,
       });
-
-      updateGameState(response);
-
-      if (response.isGameOver) {
-        setTimeout(() => {
-          navigate(`/dashboard/play/qcm/${sessionId}/results`);
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Failed to submit answer:', error);
-      setError(error.message || 'Failed to submit answer');
-    } finally {
-      setIsSubmitting(false);
-    }
+      updateGameState(res);
+      if (res.isGameOver) setTimeout(() => navigate(`/dashboard/play/qcm/${sessionId}/results`), 2000);
+    } catch (e) { setError(e.message); }
+    finally { setSubmitting(false); }
   };
 
-  // Handle next question
-  const handleNextQuestion = () => {
-    if (lastAnswerResult?.hasNextQuestion) {
-      fetchNextQuestion();
-    }
+  const abandon = async () => {
+    if (!window.confirm(t('qcm.confirmAbandon'))) return;
+    try { await qcmGameService.abandonGameSession(sessionId); } catch (_) {}
+    navigate('/dashboard/play');
   };
 
-  // Handle abandon game
-  const handleAbandonGame = async () => {
-    if (window.confirm(t('qcm.confirmAbandon'))) {
-      try {
-        await qcmGameService.abandonGameSession(sessionId);
-        navigate('/dashboard/play');
-      } catch (error) {
-        console.error('Failed to abandon game:', error);
-      }
-    }
-  };
-
-  // Loading state - show spinner while loading session or question
-  if ((isLoading && !currentQuestion) || !sessionLoaded) {
+  /* ─── Loading screen ─── */
+  if ((isLoading && !currentQuestion) || !loaded) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">{t('qcm.loadingQuestion')}</p>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="relative w-16 h-16 mx-auto">
+            <Loader2 className="h-16 w-16 animate-spin text-primary/30" />
+            <Zap className="h-6 w-6 text-primary absolute inset-0 m-auto" />
+          </div>
+          <p className="text-sm text-muted-foreground">{t('qcm.loadingQuestion')}</p>
         </div>
       </div>
     );
   }
 
-  // Game over state
+  /* ─── Game over screen ─── */
   if (isGameOver) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center">
-            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">{t('qcm.gameOver')}</h2>
-            <p className="text-muted-foreground mb-4">
-              {t('qcm.noLivesRemaining')}
-            </p>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{score}</p>
-                <p className="text-sm text-muted-foreground">{t('qcm.points')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{correctAnswers}</p>
-                <p className="text-sm text-muted-foreground">{t('qcm.correct')}</p>
-              </div>
+      <div className="flex items-center justify-center min-h-screen bg-background px-4">
+        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          className="text-center max-w-sm w-full space-y-8">
+          <div className="relative w-28 h-28 mx-auto">
+            <div className="absolute inset-0 bg-red-500/15 rounded-full animate-ping" />
+            <div className="relative flex items-center justify-center w-28 h-28 bg-red-500/10 border-2 border-red-500/30 rounded-full">
+              <AlertTriangle className="h-12 w-12 text-red-400" />
             </div>
-            <Button onClick={() => navigate(`/dashboard/play/qcm/${sessionId}/results`)}>
-              {t('qcm.viewResults')}
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <div>
+            <h2 className="text-4xl font-black">{t('qcm.gameOver')}</h2>
+            <p className="text-muted-foreground mt-2 text-sm">{t('qcm.noLivesRemaining')}</p>
+          </div>
+          <div className="flex justify-center gap-10">
+            <div className="text-center">
+              <p className="text-4xl font-black text-primary tabular-nums">{score}</p>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">Points</p>
+            </div>
+            <div className="w-px bg-border" />
+            <div className="text-center">
+              <p className="text-4xl font-black tabular-nums">{questionIndex - 1}</p>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">Correct</p>
+            </div>
+          </div>
+          <button onClick={() => navigate(`/dashboard/play/qcm/${sessionId}/results`)}
+            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-sm hover:bg-primary/90 transition-colors">
+            {t('qcm.viewResults')}
+          </button>
+        </motion.div>
       </div>
     );
   }
 
+  const diff = currentQuestion?.difficultyLevel;
+
   return (
-    <div className="h-screen flex flex-col py-4 px-4 overflow-hidden">
-      {/* Game Header - Compact */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="text-base px-3 py-1">
-            {t('qcm.questionNumber', { number: questionIndex })}
-          </Badge>
-          <LivesDisplay lives={livesRemaining} />
-          <Badge variant="secondary" className="text-base">
-            {currentQuestion?.difficultyLevel}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            <span className="font-bold">{score}</span>
+    <div className="min-h-screen bg-background flex flex-col">
+
+      {/* ─── HUD ─── */}
+      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-white/6">
+        <div className="max-w-2xl mx-auto px-5 py-3 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Hearts count={livesRemaining} />
+              <span className="text-xs font-black font-mono text-muted-foreground border border-white/10 rounded-lg px-2 py-0.5">
+                Q{questionIndex}
+              </span>
+              {diff && (
+                <span className={`text-[11px] font-black border rounded-lg px-2 py-0.5 ${DIFF_STYLE[diff] || 'text-muted-foreground border-white/10'}`}>
+                  {diff}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 bg-primary/12 border border-primary/20 rounded-full px-3.5 py-1.5">
+                <Trophy className="h-3.5 w-3.5 text-primary" />
+                <span className="font-black text-primary text-sm tabular-nums">{score}</span>
+              </div>
+              <button onClick={abandon}
+                className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
+                Quit
+              </button>
+            </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleAbandonGame}>
-            {t('qcm.abandon')}
-          </Button>
+          {globalTimerDuration && (
+            <TimerBar remaining={timeLeft} max={maxTimerDuration || globalTimerDuration} />
+          )}
         </div>
       </div>
 
-      {/* Global Timer - Compact */}
-      {globalTimerDuration && (
-        <div className="mb-4 flex-shrink-0">
-          <GlobalTimer
-            timeRemaining={globalTimeRemaining}
-            totalTime={globalTimerDuration}
-            maxTime={maxTimerDuration || globalTimerDuration}
-          />
-        </div>
-      )}
+      {/* ─── Content ─── */}
+      <div className="flex-1 max-w-2xl mx-auto w-full px-5 py-8 pb-36 flex flex-col gap-5">
 
-      {/* Main Game Area - Side by Side Layout */}
-      <div className="flex-1 flex gap-4 min-h-0">
-        {/* Left Side - Question Card */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <Card className="flex-1 flex flex-col overflow-hidden">
-            <CardHeader className="flex-shrink-0 pb-2">
-              <div className="flex items-center justify-between">
-                {currentQuestion?.showHint && currentQuestion?.hint && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowHint(!showHint)}
-                    className="text-yellow-600"
-                  >
-                    <Lightbulb className="h-4 w-4 mr-1" />
-                    {t('qcm.hint')}
-                  </Button>
-                )}
-              </div>
-              <CardTitle className="text-lg mt-2">
-                {currentQuestion?.content}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto">
-              {/* Hint display */}
-              {showHint && currentQuestion?.hint && (
-                <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    <Lightbulb className="h-4 w-4 inline mr-1" />
-                    {currentQuestion.hint}
-                  </p>
-                </div>
+        {/* Question */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestion?.questionId}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.22 }}
+          >
+            {/* Question number accent */}
+            <div className="flex items-baseline gap-3 mb-5">
+              <span className="text-[3.5rem] font-black leading-none text-border tabular-nums select-none">{String(questionIndex).padStart(2, '0')}</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground pb-1">Question</span>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-7">
+              {hintsEnabled && currentQuestion?.showHint && currentQuestion?.hint && (
+                <button onClick={() => setShowHint(!showHint)}
+                  className="mb-4 flex items-center gap-2 text-xs text-yellow-400 hover:text-yellow-300 transition-colors">
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  {showHint ? 'Hide hint' : t('qcm.hint')}
+                </button>
               )}
 
-              {/* Answer options */}
-              <div className="space-y-2">
-                {currentQuestion?.answers?.map((answer) => (
-                  <AnswerOption
-                    key={answer.answerId}
-                    answer={answer}
-                    selected={selectedAnswerId === answer.answerId}
-                    correct={lastAnswerResult?.correctAnswerId === answer.answerId}
-                    revealed={!!lastAnswerResult}
-                    onClick={() => !lastAnswerResult && setSelectedAnswerId(answer.answerId)}
-                    disabled={!!lastAnswerResult || isSubmitting}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+              <AnimatePresence>
+                {showHint && currentQuestion?.hint && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-5">
+                    <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-sm text-yellow-300 leading-relaxed">
+                      {currentQuestion.hint}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <p className="text-xl font-semibold leading-relaxed">
+                {currentQuestion?.content}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Answers */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {currentQuestion?.answers?.map((ans, i) => (
+            <AnswerBtn
+              key={ans.answerId}
+              answer={ans}
+              index={i}
+              selected={selectedId === ans.answerId}
+              correct={lastAnswerResult?.correctAnswerId === ans.answerId}
+              revealed={!!lastAnswerResult}
+              onClick={() => !lastAnswerResult && setSelectedId(ans.answerId)}
+              disabled={!!lastAnswerResult || submitting}
+            />
+          ))}
         </div>
 
-        {/* Right Side - Action Panel */}
-        <div className="w-64 flex-shrink-0 flex flex-col gap-4">
-          {/* Submit Button - Always visible on right side */}
-          {!lastAnswerResult && (
-            <Card className="flex-1 flex items-center justify-center">
-              <CardContent className="p-4 w-full">
-                <Button
-                  onClick={() => handleSubmitAnswer()}
-                  disabled={!selectedAnswerId || isSubmitting}
-                  className="w-full h-16 text-lg"
-                  size="lg"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      {t('qcm.submitAnswer')}
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+      </div>
 
-          {/* Answer Feedback - On right side */}
-          {lastAnswerResult && (
-            <Card className={`flex-1 ${lastAnswerResult.isCorrect ? 'border-green-500' : 'border-destructive'}`}>
-              <CardContent className="p-4 h-full flex flex-col justify-center">
-                <div className="text-center mb-4">
-                  {lastAnswerResult.isCorrect ? (
-                    <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
-                  ) : (
-                    <XCircle className="h-12 w-12 text-destructive mx-auto" />
-                  )}
-                  <h3 className={`font-bold text-lg mt-2 ${lastAnswerResult.isCorrect ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}>
-                    {lastAnswerResult.isCorrect
-                      ? t('qcm.correctAnswer')
-                      : t('qcm.wrongAnswer')}
-                  </h3>
-                </div>
-                
-                {!lastAnswerResult.isCorrect && (
-                  <div className="text-sm mb-3 p-2 bg-muted rounded">
-                    <span className="font-medium">{t('qcm.correctAnswerWas')}</span>
-                    <p className="text-green-600 dark:text-green-400">{lastAnswerResult.correctAnswerContent}</p>
-                  </div>
-                )}
-
-                {lastAnswerResult.explanation && (
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {lastAnswerResult.explanation}
+      {/* ─── Fixed bottom action panel ─── */}
+      <div className="fixed bottom-0 left-0 right-0 lg:left-[240px] z-30 bg-background/95 backdrop-blur-xl border-t border-white/8">
+        <div className="max-w-2xl mx-auto px-5 py-4">
+          <AnimatePresence mode="wait">
+            {!lastAnswerResult ? (
+              <motion.button
+                key="submit"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                onClick={() => submit()}
+                disabled={!selectedId || submitting}
+                className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submitting
+                  ? <Loader2 className="h-5 w-5 animate-spin" />
+                  : <><CheckCircle2 className="h-5 w-5" />{t('qcm.submitAnswer')}</>
+                }
+              </motion.button>
+            ) : (
+              <motion.div
+                key="feedback"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${
+                  lastAnswerResult.isCorrect
+                    ? 'border-emerald-500/30 bg-emerald-500/8'
+                    : 'border-red-500/30 bg-red-500/8'
+                }`}
+              >
+                {lastAnswerResult.isCorrect
+                  ? <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                  : <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                }
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-black ${lastAnswerResult.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {lastAnswerResult.isCorrect ? t('qcm.correctAnswer') : t('qcm.wrongAnswer')}
                   </p>
-                )}
-
-                {/* Next button */}
-                {lastAnswerResult.hasNextQuestion && (
-                  <Button
-                    onClick={handleNextQuestion}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {t('qcm.nextQuestion')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  {!lastAnswerResult.isCorrect && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {t('qcm.correctAnswerWas')}: <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
+                    </p>
+                  )}
+                  {explanationsEnabled && lastAnswerResult.explanation && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{lastAnswerResult.explanation}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {lastAnswerResult.timeAdjustment && (
+                    <span className={`text-xs font-black tabular-nums ${lastAnswerResult.timeAdjustment > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {lastAnswerResult.timeAdjustment > 0 ? `+${lastAnswerResult.timeAdjustment}s` : `${lastAnswerResult.timeAdjustment}s`}
+                    </span>
+                  )}
+                  {lastAnswerResult.hasNextQuestion && (
+                    <button
+                      onClick={fetchNext}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors"
+                    >
+                      {t('qcm.nextQuestion')} <ArrowRight className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
+
     </div>
   );
 }
 
-// Wrapper component with provider
 export default function QcmGamePlay() {
   return (
     <QcmGameProvider>

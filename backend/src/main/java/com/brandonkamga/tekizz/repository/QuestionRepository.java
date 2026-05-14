@@ -55,4 +55,19 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id = :categoryId AND q.game.id = :gameId AND q.status.statusName = com.brandonkamga.tekizz.domain.QuestionStatusType.ACTIVE")
     Long countByCategoryIdAndGameId(@Param("categoryId") Long categoryId, @Param("gameId") Long gameId);
+
+    @Query("SELECT DISTINCT q FROM Question q JOIN q.tags t WHERE t.id IN :tagIds AND q.category.id = :categoryId AND q.game.id = :gameId AND q.status.statusName = :status")
+    List<Question> findByCategoryIdAndGameIdAndTagIdsAndStatus(
+            @Param("categoryId") Long categoryId,
+            @Param("gameId") Long gameId,
+            @Param("tagIds") List<Long> tagIds,
+            @Param("status") QuestionStatusType status);
+
+    List<Question> findBySubmittedById(Long userId);
+
+    @Query("SELECT q FROM Question q WHERE q.submittedBy IS NOT NULL AND q.status.statusName = com.brandonkamga.tekizz.domain.QuestionStatusType.REVIEW")
+    List<Question> findPendingContributions();
+
+    @Query("SELECT COUNT(q) FROM Question q WHERE q.submittedBy IS NOT NULL AND q.status.statusName = com.brandonkamga.tekizz.domain.QuestionStatusType.REVIEW")
+    long countPendingContributions();
 }

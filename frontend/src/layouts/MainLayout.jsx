@@ -4,7 +4,7 @@ import Footer from "../components/layout/Footer";
 
 const MainLayout = () => {
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen bg-[#080808]">
       {/* Le Header gère son propre placement fixe et ses marges */}
       <Header />
 

@@ -11,6 +11,10 @@
     "tagline": "Turn your tech learning into an interactive and fun experience. Join our community of enthusiasts.",
     "rights": "All rights reserved."
   },
+  "language": {
+    "fr": "Français",
+    "en": "English"
+  },
   "auth": {
     "welcomeBack": "Welcome back! Please sign in to continue.",
     "createAccount": "Create your account to get started.",
@@ -35,6 +39,7 @@
     "performance.qcm": "QCM",
     "performance.smatch": "SMATCH",
     "leaderboard": "Leaderboard",
+    "contribute": "Contribute",
     "settings": "Settings",
     "about": "About",
     "logout": "Sign out"
@@ -176,7 +181,11 @@
     "deleteAccount": "Delete Account",
     "deleteAccountDescription": "Permanently delete your account and all data",
     "delete": "Delete",
-    "deleteConfirm": "Are you sure you want to delete your account? This action is irreversible and all your data will be lost."
+    "deleteConfirm": "Are you sure you want to delete your account? This action is irreversible and all your data will be lost.",
+    "preferences": "Preferences",
+    "preferencesDescription": "Customize your Tekizz experience",
+    "language": "Interface Language",
+    "languageDescription": "Choose the language used throughout the platform"
   },
   "play": {
     "title": "Choose Your Game",

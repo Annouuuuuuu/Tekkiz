@@ -5,10 +5,12 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
   const { t } = useTranslation("common");
   const { loginWithOAuth, login, register } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState(initialMode);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +65,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
 
     if (result.success) {
       onClose();
+      navigate("/dashboard");
     } else {
       setError(result.error || "Login failed. Please check your credentials.");
     }
@@ -79,6 +82,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
 
     if (result.success) {
       onClose();
+      navigate("/dashboard");
     } else {
       setError(result.error || "Registration failed. Please try again.");
     }
@@ -160,7 +164,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
 
                     {error && (
                       <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-500 text-sm">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 shrink-0" />
                         {error}
                       </div>
                     )}

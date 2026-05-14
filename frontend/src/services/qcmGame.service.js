@@ -121,11 +121,17 @@ export const getUserStats = async () => {
  * @returns {Promise<Object>} Leaderboard data with entries and pagination info
  */
 export const getLeaderboard = async (params = {}) => {
-  const { page = 0, size = 10, categoryId } = params;
+  const { page = 0, size = 10, categoryId, gameMode } = params;
   const queryParams = new URLSearchParams({ page, size });
   if (categoryId) queryParams.append('categoryId', categoryId);
-  
+  if (gameMode && gameMode !== 'ALL') queryParams.append('gameMode', gameMode);
+
   const response = await apiClient.get(`/api/v1/games/qcm/leaderboard?${queryParams}`);
+  return response.data;
+};
+
+export const resetUserStats = async () => {
+  const response = await apiClient.delete('/api/v1/games/qcm/stats');
   return response.data;
 };
 
@@ -140,4 +146,5 @@ export default {
   getTagsByCategory,
   getUserStats,
   getLeaderboard,
+  resetUserStats,
 };
