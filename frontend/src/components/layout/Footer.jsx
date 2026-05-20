@@ -16,10 +16,10 @@ const Footer = () => {
         </span>
         <div className="flex gap-4 items-center">
           <LanguageSwitcher variant="dark" />
-          <a href="#" className="text-white/25 hover:text-primary transition-colors">
+          <a href="https://github.com/LesCracks-OS/Tekkiz" className="text-white/25 hover:text-primary transition-colors">
             <Github size={17} />
           </a>
-          <a href="#" className="text-white/25 hover:text-primary transition-colors">
+          <a href="https://www.linkedin.com/company/lescracks/" className="text-white/25 hover:text-primary transition-colors">
             <Linkedin size={17} />
           </a>
         </div>

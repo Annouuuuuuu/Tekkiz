@@ -30,7 +30,7 @@
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
     "signUp": "S'inscrire",
     "signIn": "Se connecter",
-    "agreeToTerms": "En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité."
+    "agreeToTerms": "En continuant, vous acceptez nos <termsLink>Conditions d'utilisation</termsLink> et notre <privacyLink>Politique de confidentialité</privacyLink>."
   },
   "sidebar": {
     "play": "Jouer",
