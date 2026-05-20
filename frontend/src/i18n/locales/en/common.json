@@ -30,7 +30,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "signUp": "Sign up",
     "signIn": "Sign in",
-    "agreeToTerms": "By continuing, you agree to our Terms of Service and Privacy Policy."
+    "agreeToTerms": "By continuing, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>."
   },
   "sidebar": {
     "play": "Play",
