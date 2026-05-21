@@ -15,22 +15,18 @@
     "fr": "Français",
     "en": "English"
   },
-  "auth": {
-    "welcomeBack": "Bienvenue ! Veuillez vous connecter pour continuer.",
-    "createAccount": "Créez votre compte pour commencer.",
-    "continueWithGoogle": "Continuer avec Google",
-    "continueWithGithub": "Continuer avec GitHub",
-    "orContinueWith": "ou continuer avec",
-    "signInWithEmail": "Se connecter avec Email",
-    "signUpWithEmail": "S'inscrire avec Email",
-    "back": "Retour",
-    "signingIn": "Connexion en cours...",
-    "creatingAccount": "Création du compte...",
-    "dontHaveAccount": "Vous n'avez pas de compte ?",
-    "alreadyHaveAccount": "Vous avez déjà un compte ?",
-    "signUp": "S'inscrire",
-    "signIn": "Se connecter",
-    "agreeToTerms": "En continuant, vous acceptez nos <termsLink>Conditions d'utilisation</termsLink> et notre <privacyLink>Politique de confidentialité</privacyLink>."
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "intro": "Chez Tekizz, nous accordons une grande importance à votre vie privée et nous nous engageons à protéger vos données personnelles.",
+    "content": "Cette Politique de confidentialité explique comment nous collectons, utilisons et divulguons vos informations personnelles lorsque vous utilisez notre plateforme.",
+    "dataCollection": "Collecte de données",
+    "dataCollectionContent": "Nous collectons les informations que vous nous fournissez directement, par exemple lorsque vous créez un compte, participez à des jeux ou nous contactez. Nous pouvons également collecter automatiquement certaines informations sur votre appareil et votre utilisation de nos services.",
+    "dataUsage": "Utilisation des données",
+    "dataUsageContent": "Nous utilisons les informations collectées pour fournir, maintenir et améliorer nos services, développer de nouvelles fonctionnalités et protéger Tekizz et nos utilisateurs.",
+    "cookies": "Cookies et technologies similaires",
+    "cookiesContent": "Nous utilisons des cookies et des technologies de suivi similaires pour améliorer votre expérience, analyser le trafic et personnaliser le contenu.",
+    "rights": "Vos droits",
+    "rightsContent": "Vous avez le droit d'accéder, de rectifier ou de supprimer vos données personnelles. Vous pouvez également vous opposer ou limiter certains traitements de données. Pour exercer ces droits, veuillez nous contacter à l'adresse privacy@tekizz.com."
   },
   "sidebar": {
     "play": "Jouer",

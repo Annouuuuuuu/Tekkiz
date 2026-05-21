@@ -15,22 +15,18 @@
     "fr": "Français",
     "en": "English"
   },
-  "auth": {
-    "welcomeBack": "Welcome back! Please sign in to continue.",
-    "createAccount": "Create your account to get started.",
-    "continueWithGoogle": "Continue with Google",
-    "continueWithGithub": "Continue with GitHub",
-    "orContinueWith": "or continue with",
-    "signInWithEmail": "Sign in with Email",
-    "signUpWithEmail": "Sign up with Email",
-    "back": "Back",
-    "signingIn": "Signing in...",
-    "creatingAccount": "Creating account...",
-    "dontHaveAccount": "Don't have an account?",
-    "alreadyHaveAccount": "Already have an account?",
-    "signUp": "Sign up",
-    "signIn": "Sign in",
-    "agreeToTerms": "By continuing, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>."
+"privacy": {
+    "title": "Privacy Policy",
+    "intro": "At Tekizz, we value your privacy and are committed to protecting your personal data.",
+    "content": "This Privacy Policy explains how we collect, use, and disclose your personal information when you use our platform.",
+    "dataCollection": "Data Collection",
+    "dataCollectionContent": "We collect information you provide directly to us, such as when you create an account, participate in games, or contact us. We may also automatically collect certain information about your device and usage of our services.",
+    "dataUsage": "Data Usage",
+    "dataUsageContent": "We use the information we collect to provide, maintain, and improve our services, to develop new features, and to protect Tekizz and our users.",
+    "cookies": "Cookies and Similar Technologies",
+    "cookiesContent": "We use cookies and similar tracking technologies to enhance your experience, analyze traffic, and personalize content.",
+    "rights": "Your Rights",
+    "rightsContent": "You have the right to access, correct, or delete your personal data. You can also object to or restrict certain data processing. To exercise these rights, please contact us at privacy@tekizz.com."
   },
   "sidebar": {
     "play": "Play",
