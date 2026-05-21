@@ -14,16 +14,13 @@ const Footer = () => {
         </span>
 
         <div className="flex flex-col items-center gap-2">
-          <span className="text-[11px] font-mono tracking-[0.18em] uppercase text-white/20 text-center">
-            © {new Date().getFullYear()} Tekizz. {t("footer.rights")}
-          </span>
-
-          <a
-            href="/privacy"
-            className="text-xs text-white/40 hover:text-primary transition-colors"
-          >
-            Privacy Policy
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-[11px] font-mono tracking-[0.18em] uppercase text-white/20">
+          <span>© {new Date().getFullYear()} Tekizz. {t("footer.rights")}</span>
+          <div className="flex gap-4 sm:gap-6">
+            <a href="/privacy" className="text-xs text-white/40 hover:text-primary transition-colors">Privacy Policy</a>
+            <a href="/terms" className="text-xs text-white/40 hover:text-primary transition-colors">Terms</a>
+          </div>
+        </div>
         </div>
 
         <div className="flex gap-4 items-center">

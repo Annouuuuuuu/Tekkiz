@@ -6,6 +6,8 @@ import AdminRoute from "./components/admin/AdminRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import OAuthCallback from "./pages/OAuthCallback";
 import PlayPage from "./pages/dashboard/Play";
 import QcmGameConfig from "./pages/dashboard/QcmGameConfig";
@@ -64,6 +66,8 @@ export default function App() {
             <Route element={<MainLayout />}>
               <Route path="/" element={<Home />}></Route>
               <Route path="/about" element={<Home />}></Route>
+              <Route path="/privacy" element={<Privacy />}></Route>
+              <Route path="/terms" element={<Terms />}></Route>
             </Route>
 
             {/* Auth routes */}
