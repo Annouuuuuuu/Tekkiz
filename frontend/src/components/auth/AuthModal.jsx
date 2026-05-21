@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Github, Mail, AlertCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,19 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
     setShowEmailForm(false);
     setError("");
   }, [initialMode]);
+
+  // Blocage du scroll en arrière plan en cas d'ouverture du modal
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   const handleOAuthLogin = (provider) => {
     loginWithOAuth(provider);
@@ -369,7 +382,14 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
 
               {/* Terms */}
               <p className="text-center text-xs text-muted-foreground mt-4">
-                {t("auth.agreeToTerms")}
+            <Trans
+            i18nKey="auth.agreeToTerms"
+            ns="common"
+            components={{
+              termsLink: <a href="/terms" className="text-primary hover:underline" />,
+              privacyLink: <a href="/privacy" className="text-primary hover:underline" />,
+            }}
+          />
               </p>
             </CardContent>
           </Card>
