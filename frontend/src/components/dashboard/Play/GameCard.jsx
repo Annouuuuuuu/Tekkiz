@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,8 +13,6 @@ const GameCard = ({
   onPlay,
   comingSoon = false,
 }) => {
-  const { t } = useTranslation("common");
-
   if (comingSoon && !isActive) {
     return (
       <Card className="relative overflow-hidden">
@@ -25,7 +22,7 @@ const GameCard = ({
         {/* Overlay Coming Soon */}
         <div className="absolute inset-0 z-20 flex items-center justify-center">
           <div className="bg-primary/90 text-primary-foreground px-6 py-3 rounded-full font-semibold shadow-lg">
-            {t("play.smatch.comingSoon")}
+            Bientôt disponible
           </div>
         </div>
 
@@ -54,7 +51,7 @@ const GameCard = ({
 
         <CardFooter>
           <Button className="w-full" disabled>
-            {t("play.smatch.comingSoon")}
+            Bientôt disponible
           </Button>
         </CardFooter>
       </Card>
@@ -101,7 +98,7 @@ const GameCard = ({
           onClick={onPlay}
           disabled={!isActive}
         >
-          {isActive ? t("play.launch", "Launch") : t("play.smatch.comingSoon")}
+          {isActive ? "Lancer" : "Bientôt disponible"}
         </Button>
       </CardFooter>
     </Card>
