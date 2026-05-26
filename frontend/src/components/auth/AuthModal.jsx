@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Github, Mail, AlertCircle } from "lucide-react";
-import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
-  const { t } = useTranslation("common");
   const { loginWithOAuth, login, register } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState(initialMode);
@@ -148,13 +146,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                   Tekizz<span className="text-primary">.</span>
                 </h2>
                 <p className="text-muted-foreground text-sm mt-2">
-                  {showEmailForm
-                    ? mode === "login"
-                      ? t("auth.welcomeBack")
-                      : t("auth.createAccount")
-                    : mode === "login"
-                      ? t("auth.welcomeBack")
-                      : t("auth.createAccount")}
+                  {mode === "login" ? "Bon retour !" : "Créer votre compte"}
                 </p>
               </div>
 
@@ -172,7 +164,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       onClick={() => setShowEmailForm(false)}
                       className="text-muted-foreground hover:text-foreground text-sm mb-4 transition-colors"
                     >
-                      ← {t("auth.back")}
+                      ← Retour
                     </button>
 
                     {error && (
@@ -186,7 +178,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       // Login Form
                       <form onSubmit={handleEmailLogin} className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">{t("auth.email")}</label>
+                          <label className="text-sm font-medium">Email</label>
                           <input
                             type="email"
                             value={loginEmail}
@@ -197,7 +189,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">{t("auth.password")}</label>
+                          <label className="text-sm font-medium">Mot de passe</label>
                           <input
                             type="password"
                             value={loginPassword}
@@ -213,7 +205,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                           disabled={isLoading}
                         >
-                          {isLoading ? t("auth.signingIn") : t("auth.signIn")}
+                          {isLoading ? "Connexion en cours..." : "Se connecter"}
                         </Button>
                       </form>
                     ) : (
@@ -221,7 +213,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       <form onSubmit={handleEmailSignup} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">{t("auth.firstName")}</label>
+                            <label className="text-sm font-medium">Prénom</label>
                             <input
                               type="text"
                               name="firstName"
@@ -233,7 +225,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">{t("auth.lastName")}</label>
+                            <label className="text-sm font-medium">Nom</label>
                             <input
                               type="text"
                               name="lastName"
@@ -245,7 +237,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">{t("auth.username")}</label>
+                          <label className="text-sm font-medium">Nom d'utilisateur</label>
                           <input
                             type="text"
                             name="username"
@@ -257,7 +249,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">{t("auth.email")}</label>
+                          <label className="text-sm font-medium">Email</label>
                           <input
                             type="email"
                             name="email"
@@ -269,7 +261,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">{t("auth.password")}</label>
+                          <label className="text-sm font-medium">Mot de passe</label>
                           <input
                             type="password"
                             name="password"
@@ -287,7 +279,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                           disabled={isLoading}
                         >
-                          {isLoading ? t("auth.creatingAccount") : t("auth.signUp")}
+                          {isLoading ? "Création du compte..." : "S'inscrire"}
                         </Button>
                       </form>
                     )}
@@ -310,7 +302,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       >
                         <Mail className="w-5 h-5 mr-3" />
                         <span className="font-medium">
-                          {t("auth.continueWithGoogle")}
+                          Continuer avec Google
                         </span>
                       </Button>
 
@@ -322,7 +314,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       >
                         <Github className="w-5 h-5 mr-3" />
                         <span className="font-medium">
-                          {t("auth.continueWithGithub")}
+                          Continuer avec GitHub
                         </span>
                       </Button>
                     </div>
@@ -334,7 +326,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
                         <span className="bg-card px-2 text-muted-foreground">
-                          {t("auth.orContinueWith")}
+                          ou continuer avec
                         </span>
                       </div>
                     </div>
@@ -347,8 +339,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                         onClick={() => setShowEmailForm(true)}
                       >
                         {mode === "login"
-                          ? t("auth.signInWithEmail")
-                          : t("auth.signUpWithEmail")}
+                          ? "Se connecter par email"
+                          : "S'inscrire par email"}
                       </Button>
                     </div>
                   </motion.div>
@@ -359,22 +351,22 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
               <p className="text-center text-sm text-muted-foreground mt-6">
                 {mode === "login" ? (
                   <>
-                    {t("auth.dontHaveAccount")}{" "}
+                    Pas encore de compte ?{" "}
                     <button
                       onClick={() => handleSwitchMode("signup")}
                       className="text-primary font-medium hover:underline"
                     >
-                      {t("auth.signUp")}
+                      S'inscrire
                     </button>
                   </>
                 ) : (
                   <>
-                    {t("auth.alreadyHaveAccount")}{" "}
+                    Déjà un compte ?{" "}
                     <button
                       onClick={() => handleSwitchMode("login")}
                       className="text-primary font-medium hover:underline"
                     >
-                      {t("auth.signIn")}
+                      Se connecter
                     </button>
                   </>
                 )}
@@ -382,14 +374,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
 
               {/* Terms */}
               <p className="text-center text-xs text-muted-foreground mt-4">
-            <Trans
-            i18nKey="auth.agreeToTerms"
-            ns="common"
-            components={{
-              termsLink: <a href="/terms" className="text-primary hover:underline" />,
-              privacyLink: <a href="/privacy" className="text-primary hover:underline" />,
-            }}
-          />
+                En continuant, vous acceptez nos{" "}
+                <a href="/terms" className="text-primary hover:underline">CGU</a>{" "}
+                et notre{" "}
+                <a href="/privacy" className="text-primary hover:underline">Politique de confidentialité</a>.
               </p>
             </CardContent>
           </Card>

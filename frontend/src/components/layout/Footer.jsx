@@ -1,31 +1,25 @@
 import { Github, Linkedin } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import LanguageSwitcher from "../LanguageSwitcher";
 
 const Footer = () => {
-  const { t } = useTranslation("common");
-
   return (
     <footer className="bg-[#080808] border-t border-white/[0.06]">
       <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-20 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-        
+
         <span className="text-xl font-black tracking-tighter text-white">
           Tekizz<span className="text-primary">.</span>
         </span>
 
         <div className="flex flex-col items-center gap-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-[11px] font-mono tracking-[0.18em] uppercase text-white/20">
-          <span>© {new Date().getFullYear()} Tekizz. {t("footer.rights")}</span>
+          <span>© {new Date().getFullYear()} Tekizz. Tous droits réservés.</span>
           <div className="flex gap-4 sm:gap-6">
-            <a href="/privacy" className="text-xs text-white/40 hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="/terms" className="text-xs text-white/40 hover:text-primary transition-colors">Terms</a>
+            <a href="/privacy" className="text-xs text-white/40 hover:text-primary transition-colors">Politique de confidentialité</a>
+            <a href="/terms" className="text-xs text-white/40 hover:text-primary transition-colors">CGU</a>
           </div>
         </div>
         </div>
 
         <div className="flex gap-4 items-center">
-          <LanguageSwitcher variant="dark" />
-
           <a
             href="https://github.com/LesCracks-OS/Tekkiz"
             target="_blank"

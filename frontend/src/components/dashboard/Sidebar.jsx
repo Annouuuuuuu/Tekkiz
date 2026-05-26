@@ -1,19 +1,18 @@
 import { NavLink } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { Play, BarChart3, Trophy, Settings, Info, LogOut, X, Shield, PenLine } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const NAV_KEYS = [
-  { to: "/dashboard/play",        icon: Play,     key: "play" },
-  { to: "/dashboard/performance", icon: BarChart3, key: "performance" },
-  { to: "/dashboard/leaderboard", icon: Trophy,    key: "leaderboard" },
-  { to: "/dashboard/contribute",  icon: PenLine,  key: "contribute" },
+const NAV_ITEMS = [
+  { to: "/dashboard/play",        icon: Play,     label: "Jouer" },
+  { to: "/dashboard/performance", icon: BarChart3, label: "Performance" },
+  { to: "/dashboard/leaderboard", icon: Trophy,    label: "Classement" },
+  { to: "/dashboard/contribute",  icon: PenLine,  label: "Contribuer" },
 ];
 
-const NAV_SECONDARY_KEYS = [
-  { to: "/dashboard/settings", icon: Settings, key: "settings" },
-  { to: "/dashboard/about",    icon: Info,     key: "about" },
+const NAV_SECONDARY_ITEMS = [
+  { to: "/dashboard/settings", icon: Settings, label: "Paramètres" },
+  { to: "/dashboard/about",    icon: Info,     label: "À propos" },
 ];
 
 const link = (active) =>
@@ -24,7 +23,6 @@ const link = (active) =>
   }`;
 
 const Sidebar = ({ open, onClose }) => {
-  const { t } = useTranslation("common");
   const { user, logout } = useAuth();
 
   const initials = () => {
@@ -58,22 +56,22 @@ const Sidebar = ({ open, onClose }) => {
 
       {/* Main nav */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {NAV_KEYS.map(({ to, icon: Icon, key }) => (
+        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to} onClick={onClose}
             className={({ isActive }) => link(isActive)}>
             <Icon className="h-4 w-4 shrink-0" />
-            {t(`sidebar.${key}`)}
+            {label}
           </NavLink>
         ))}
       </nav>
 
       {/* Secondary nav */}
       <div className="border-t border-border px-3 py-4 space-y-1">
-        {NAV_SECONDARY_KEYS.map(({ to, icon: Icon, key }) => (
+        {NAV_SECONDARY_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to} onClick={onClose}
             className={({ isActive }) => link(isActive)}>
             <Icon className="h-4 w-4 shrink-0" />
-            {t(`sidebar.${key}`)}
+            {label}
           </NavLink>
         ))}
         {user?.roleName === "ADMIN" && (
@@ -100,7 +98,7 @@ const Sidebar = ({ open, onClose }) => {
         <button onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
           <LogOut className="h-4 w-4 shrink-0" />
-          {t("sidebar.logout")}
+          Se déconnecter
         </button>
       </div>
     </aside>

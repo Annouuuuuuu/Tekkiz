@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Github, Mail, AlertCircle } from "lucide-react";
-import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 
 const Login = () => {
-  const { t } = useTranslation("common");
   const { loginWithOAuth, login, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -35,7 +33,7 @@ const Login = () => {
     if (result.success) {
       navigate("/dashboard");
     } else {
-      setError(result.error || t("auth.signingIn"));
+      setError(result.error || "Connexion en cours...");
     }
 
     setIsLoading(false);
@@ -56,7 +54,7 @@ const Login = () => {
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors mb-6"
             >
               <X className="w-4 h-4 mr-2" />
-              {t("auth.backToHome")}
+              Retour à l'accueil
             </Link>
 
             {/* Logo/Brand */}
@@ -65,7 +63,7 @@ const Login = () => {
                 Tekizz<span className="text-primary">.</span>
               </Link>
               <p className="text-muted-foreground text-sm mt-2">
-                {t("auth.welcomeBack")}
+                Bon retour !
               </p>
             </div>
 
@@ -86,7 +84,7 @@ const Login = () => {
               >
                 <Mail className="w-5 h-5 mr-3" />
                 <span className="font-medium">
-                  {t("auth.continueWithGoogle")}
+                  Continuer avec Google
                 </span>
               </Button>
 
@@ -97,7 +95,7 @@ const Login = () => {
               >
                 <Github className="w-5 h-5 mr-3" />
                 <span className="font-medium">
-                  {t("auth.continueWithGithub")}
+                  Continuer avec GitHub
                 </span>
               </Button>
             </div>
@@ -109,7 +107,7 @@ const Login = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  {t("auth.orContinueWith")}
+                  ou continuer avec
                 </span>
               </div>
             </div>
@@ -117,7 +115,7 @@ const Login = () => {
             {/* Email Login Form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t("auth.email")}</label>
+                <label className="text-sm font-medium">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -128,7 +126,7 @@ const Login = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t("auth.password")}</label>
+                <label className="text-sm font-medium">Mot de passe</label>
                 <input
                   type="password"
                   value={password}
@@ -144,31 +142,27 @@ const Login = () => {
                 className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                 disabled={isLoading}
               >
-                {isLoading ? t("auth.signingIn") : t("auth.signIn")}
+                {isLoading ? "Connexion en cours..." : "Se connecter"}
               </Button>
             </form>
 
             {/* Switch Mode */}
             <p className="text-center text-sm text-muted-foreground mt-6">
-              {t("auth.dontHaveAccount")}{" "}
+              Pas encore de compte ?{" "}
               <Link
                 to="/signup"
                 className="text-primary font-medium hover:underline"
               >
-                {t("auth.signUp")}
+                S'inscrire
               </Link>
             </p>
 
             {/* Terms */}
             <p className="text-center text-xs text-muted-foreground mt-4">
-              <Trans
-                i18nKey="auth.agreeToTerms"
-                ns="common"
-                components={{
-                  termsLink: <a href="/terms" className="text-primary hover:underline" />,
-                  privacyLink: <a href="/privacy" className="text-primary hover:underline" />,
-                }}
-              />
+              En continuant, vous acceptez nos{" "}
+              <a href="/terms" className="text-primary hover:underline">CGU</a>{" "}
+              et notre{" "}
+              <a href="/privacy" className="text-primary hover:underline">Politique de confidentialité</a>.
             </p>
           </CardContent>
         </Card>

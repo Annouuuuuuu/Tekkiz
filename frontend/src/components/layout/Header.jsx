@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import AuthModal from "../auth/AuthModal";
 
 const Header = () => {
-  const { t } = useTranslation("common");
   const [scrolled, setScrolled] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("signup");
@@ -36,13 +34,13 @@ const Header = () => {
               onClick={() => open("login")}
               className="hidden sm:inline-flex items-center px-5 py-2.5 rounded-full text-sm font-semibold text-white/45 hover:text-white/80 transition-colors"
             >
-              {t("header.login")}
+              Connexion
             </button>
             <button
               onClick={() => open("signup")}
               className="inline-flex items-center rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:brightness-110 hover:shadow-primary/35 transition-all"
             >
-              {t("header.getStarted")}
+              Commencer
             </button>
           </div>
         </div>
