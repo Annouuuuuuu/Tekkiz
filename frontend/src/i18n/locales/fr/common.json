@@ -210,5 +210,28 @@
     "contact": "Contact",
     "github": "GitHub",
     "website": "Site web"
+  },
+  "auth": {
+    "welcomeBack": "Bon retour !",
+    "createAccount": "Créer votre compte",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithGithub": "Continuer avec GitHub",
+    "orContinueWith": "Ou continuer avec",
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "signInWithEmail": "Se connecter par email",
+    "signUpWithEmail": "S'inscrire par email",
+    "dontHaveAccount": "Pas encore de compte ?",
+    "alreadyHaveAccount": "Déjà un compte ?",
+    "agreeToTerms": "En continuant, vous acceptez nos <termsLink>CGU</termsLink> et notre <privacyLink>Politique de confidentialité</privacyLink>.",
+    "back": "Retour",
+    "signingIn": "Connexion en cours...",
+    "creatingAccount": "Création du compte...",
+    "email": "Email",
+    "password": "Mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "username": "Nom d'utilisateur",
+    "backToHome": "Retour à l'accueil"
   }
 }

@@ -1,68 +1,88 @@
 {
   "home": {
+    "live": "{{count}} players online",
     "hero": {
-      "title": "Master tech",
-      "highlight": "in fun.",
-      "description": "Tekizz transforms complex concepts into interactive challenges. Learn faster and develop real developer logic.",
-      "cta": "Start the experience",
-      "members": "already registered"
+      "line1": "PROVE WHAT",
+      "line2": "YOU KNOW AND",
+      "line3": "WHAT YOU DO.",
+      "tagline": "Tech is shared. And measured.",
+      "description": "A platform built for everyone who lives in tech — or dreams of breaking in. Review the fundamentals, discover new concepts, take on the best. Whether you're a student, career changer, or seasoned pro, your place is here.",
+      "ctaPrimary": "Get started — it's free",
+      "ctaSecondary": "Sign in",
+      "statPlayers": "players",
+      "statQuestions": "questions",
+      "statGames": "games",
+      "statCountries": "countries"
     },
-    "features": {
-      "title": "Features",
-      "subtitle": "A complete platform to develop your technical skills",
-      "games": {
-        "title": "Interactive Games",
-        "description": "QCM quizzes and matching games to learn while having fun. Test your knowledge and strengthen your memorization in an engaging way."
+    "demo": {
+      "question": "DNS operates at which layer of the OSI model?",
+      "answerA": "Transport layer",
+      "answerB": "Application layer",
+      "answerC": "Network layer",
+      "answerD": "Data link layer"
+    },
+    "games": {
+      "sectionLabel": "The arenas",
+      "headline1": "Choose.",
+      "headline2": "Play. Climb.",
+      "qcm": {
+        "tagline": "Multiple choice quiz",
+        "description": "Global timer, 3 lives, progressive difficulty EASY → EXPERT. Every game counts toward your global ranking.",
+        "blitzNote": "Max pressure",
+        "rushNote": "Steady pace",
+        "classicNote": "Deep thinking",
+        "playNow": "Play now"
       },
-      "adaptive": {
-        "title": "Adaptive Difficulty",
-        "description": "The system adapts to your level. The better you perform, the more challenging the games become to maximize your learning."
-      },
-      "stats": {
-        "title": "Detailed Statistics",
-        "description": "Track your progress with precise charts and metrics: accuracy by category, score evolution, and strengths."
-      },
-      "leaderboard": {
-        "title": "Competitive Leaderboard",
-        "description": "Compare your performance with other developers. Climb the ranks and challenge the community."
-      },
-      "resources": {
-        "title": "Learning Resources",
-        "description": "Access targeted resources to deepen your knowledge. Links to documentation, tutorials, and recommended articles based on your results."
-      },
-      "community": {
-        "title": "Active Community",
-        "description": "Join a community of passionate developers. Share, learn, and grow together in a supportive environment."
+      "smatch": {
+        "tagline": "Speed matching",
+        "description": "Match terms and definitions before the timer runs out. The most addictive game to lock in tech concepts.",
+        "discover": "Discover"
       }
+    },
+    "manifesto": {
+      "label": "Our belief",
+      "quote": "Working in tech without mastering its fundamentals",
+      "quoteLight": "is building on sand.",
+      "description": "Tekizz challenges you. Not to grade you — to reveal what you don't know yet and turn that into strength.",
+      "ctaPrimary": "Join the arena",
+      "ctaSecondary": "I already have an account"
+    },
+    "contribute": {
+      "sectionLabel": "Community · Open",
+      "headline1": "You write.",
+      "headline2": "The community plays.",
+      "contentTitle": "Content",
+      "contentBody": "Enrich the platform by submitting content — questions, resources, corrections — to keep the games evolving.",
+      "codeTitle": "Code",
+      "codeBody": "Report bugs, suggest new features, or directly contribute to the platform's source code.",
+      "supportTitle": "Support",
+      "supportBody": "Help fund hosting and development so Tekizz stays free and keeps growing.",
+      "bannerTitle": "The platform grows through its community.",
+      "bannerSub": "Everyone contributes in their own way — content, code, or financial support.",
+      "ctaButton": "Contribute"
     },
     "faq": {
-      "title": "Frequently Asked Questions",
-      "subtitle": "Everything you need to know about Tekizz",
+      "sectionLabel": "Frequently Asked Questions",
       "q1": {
         "question": "What is Tekizz?",
-        "answer": "Tekizz is an interactive learning platform designed for developers and tech enthusiasts. It transforms learning into a fun experience through adaptive quizzes and an engaging gamification system."
+        "answer": "A quiz platform for tech enthusiasts. Two games: QCM to test your knowledge under pressure, Smatch to match terms and definitions against the clock."
       },
       "q2": {
-        "question": "How does the difficulty system work?",
-        "answer": "The difficulty system is progressive and automatic. You start at Easy level and, based on your performance, the game gradually increases difficulty: Medium, Hard, then Expert. This ensures a challenge adapted to your level."
+        "question": "Who is it for?",
+        "answer": "Anyone interested in tech — devs, students, SREs, data scientists, cybersecurity enthusiasts. If you want to test and strengthen your fundamentals, Tekizz is for you."
       },
       "q3": {
-        "question": "What question categories are available?",
-        "answer": "Tekizz covers a wide range of tech domains: Backend (Java, Spring Boot), Frontend (React, Vue, Angular), DevOps (Docker, Kubernetes, CI/CD), Data Science, Cybersecurity, and many more. New categories are regularly added."
+        "question": "Is it free?",
+        "answer": "Yes. Just create an account. No limit on the number of games. The global leaderboard and detailed statistics are available to everyone."
       },
       "q4": {
-        "question": "Is Tekizz free?",
-        "answer": "Yes, Tekizz is completely free. Simply create your account and start playing immediately. No payment required to access all features."
+        "question": "What question categories are there?",
+        "answer": "Algorithms, data structures, networking, security, DevOps, OS, databases, tech culture. Content is regularly updated — and you can contribute by submitting your own questions."
       },
       "q5": {
-        "question": "How can I track my progress?",
-        "answer": "A comprehensive dashboard lets you visualize your statistics: global score, accuracy by category, game history, and your position in the leaderboard. All your data is automatically synchronized."
+        "question": "How does the leaderboard work?",
+        "answer": "Based on your average score across all your games. Updated in real time after each session. QCM and Smatch leaderboards are independent."
       }
-    },
-    "cta": {
-      "title": "Ready to take the challenge?",
-      "description": "Join thousands of developers improving every day with Tekizz.",
-      "button": "Get started now"
     }
   }
 }

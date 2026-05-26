@@ -1,68 +1,88 @@
 {
   "home": {
+    "live": "{{count}} joueurs en ligne",
     "hero": {
-      "title": "Maîtrisez la tech",
-      "highlight": "dans le fun.",
-      "description": "Tekizz transforme les concepts complexes en défis interactifs. Apprenez plus vite et développez une vraie logique de développeur.",
-      "cta": "Démarrer l'expérience",
-      "members": "déjà inscrits"
+      "line1": "PROUVE QUE",
+      "line2": "TU SAIS CE QUE",
+      "line3": "TU FAIS.",
+      "tagline": "La tech, ça se partage. Et ça se mesure.",
+      "description": "Une plateforme pensée pour tous ceux qui vivent de la tech — ou rêvent d'y entrer. Révise tes bases, découvre de nouveaux concepts, affronte les meilleurs. Que tu sois en école, en reconversion ou en poste, ta place est ici.",
+      "ctaPrimary": "Commencer — c'est gratuit",
+      "ctaSecondary": "Connexion",
+      "statPlayers": "joueurs",
+      "statQuestions": "questions",
+      "statGames": "parties",
+      "statCountries": "pays"
     },
-    "features": {
-      "title": "Fonctionnalités",
-      "subtitle": "Une plateforme complète pour développer vos compétences techniques",
-      "games": {
-        "title": "Jeux ludiques et interactifs",
-        "description": "Des quiz QCM et jeux de correspondance pour apprendre en vous amusant. Testez vos connaissances et renforcez votre mémorisation de manière engageante."
+    "demo": {
+      "question": "DNS opère sur quelle couche du modèle OSI ?",
+      "answerA": "Couche transport",
+      "answerB": "Couche application",
+      "answerC": "Couche réseau",
+      "answerD": "Couche liaison"
+    },
+    "games": {
+      "sectionLabel": "Les arènes",
+      "headline1": "Choisis.",
+      "headline2": "Joue. Grimpe.",
+      "qcm": {
+        "tagline": "Quiz à choix multiples",
+        "description": "Timer global, 3 vies, difficulté progressive EASY → EXPERT. Chaque partie compte dans ton classement global.",
+        "blitzNote": "Pression max",
+        "rushNote": "Rythme soutenu",
+        "classicNote": "Réflexion profonde",
+        "playNow": "Jouer maintenant"
       },
-      "adaptive": {
-        "title": "Difficulté adaptative",
-        "description": "Le système s'adapte à votre niveau. Plus vous performez, plus les défis deviennent stimulants pour maximiser votre apprentissage."
-      },
-      "stats": {
-        "title": "Statistiques détaillées",
-        "description": "Suivez votre progression avec des graphiques et métriques précis : précision par catégorie, évolution des scores et points forts."
-      },
-      "leaderboard": {
-        "title": "Classement compétitif",
-        "description": "Comparez vos performances avec d'autres développeurs. Grimpez dans le classement et défiez la communauté."
-      },
-      "resources": {
-        "title": "Ressources d'apprentissage",
-        "description": "Accédez à des ressources ciblées pour approfondir vos connaissances. Liens vers la documentation, tutoriels et articles recommandés selon vos résultats."
-      },
-      "community": {
-        "title": "Communauté active",
-        "description": "Rejoignez une communauté de passionnés. Partagez, apprenez et progressez ensemble dans un environnement bienveillant."
+      "smatch": {
+        "tagline": "Speed matching",
+        "description": "Associe termes et définitions avant la fin du timer. Le jeu le plus addictif pour ancrer les concepts tech.",
+        "discover": "Découvrir"
       }
+    },
+    "manifesto": {
+      "label": "Notre conviction",
+      "quote": "Travailler dans la tech sans maîtriser ses fondamentaux,",
+      "quoteLight": "c'est construire sur du sable.",
+      "description": "Tekizz te challenge. Pas pour te noter — pour révéler ce que tu ne sais pas encore et transformer ça en force.",
+      "ctaPrimary": "Rejoindre l'arène",
+      "ctaSecondary": "J'ai déjà un compte"
+    },
+    "contribute": {
+      "sectionLabel": "Communauté · Open",
+      "headline1": "Tu écris.",
+      "headline2": "La communauté joue.",
+      "contentTitle": "Contenu",
+      "contentBody": "Enrichis la plateforme en soumettant du contenu — questions, ressources, corrections — pour faire évoluer les jeux.",
+      "codeTitle": "Code",
+      "codeBody": "Signale des bugs, propose de nouvelles fonctionnalités ou contribue directement au code source de la plateforme.",
+      "supportTitle": "Soutien",
+      "supportBody": "Aide à financer l'hébergement et le développement pour que Tekizz reste gratuit et continue d'évoluer.",
+      "bannerTitle": "La plateforme évolue grâce à sa communauté.",
+      "bannerSub": "Chacun contribue à sa façon — contenu, code ou soutien financier.",
+      "ctaButton": "Contribuer"
     },
     "faq": {
-      "title": "Questions fréquentes",
-      "subtitle": "Tout ce que vous devez savoir sur Tekizz",
+      "sectionLabel": "Questions fréquentes",
       "q1": {
-        "question": "Qu'est-ce que Tekizz ?",
-        "answer": "Tekizz est une plateforme d'apprentissage interactif conçue pour les développeurs et passionnés de tech. Elle transforme l'apprentissage en expérience ludique grâce à des quiz adaptatifs et un système de gamification engageant."
+        "question": "C'est quoi Tekizz ?",
+        "answer": "Une plateforme de quiz pour les passionnés de tech. Deux jeux : QCM pour tester tes connaissances sous pression, Smatch pour associer termes et définitions en temps limité."
       },
       "q2": {
-        "question": "Comment fonctionne le système de difficulté ?",
-        "answer": "Le système de difficulté est progressif et automatique. Vous commencez au niveau Facile et, selon vos performances, le jeu augmente progressivement la difficulté : Moyen, Difficile, puis Expert. Cela garantit un défi adapté à votre niveau."
+        "question": "Pour qui c'est fait ?",
+        "answer": "Pour tous ceux qui s'intéressent à la tech — devs, étudiants, SRE, data scientists, passionnés de cybersécurité. Si tu veux tester et renforcer tes fondamentaux, Tekizz est fait pour toi."
       },
       "q3": {
-        "question": "Quelles catégories de questions sont disponibles ?",
-        "answer": "Tekizz couvre un large éventail de domaines tech : Backend (Java, Spring Boot), Frontend (React, Vue, Angular), DevOps (Docker, Kubernetes, CI/CD), Data Science, Sécurité informatique, et bien d'autres. De nouvelles catégories sont régulièrement ajoutées."
+        "question": "C'est gratuit ?",
+        "answer": "Oui. Créer un compte suffit. Aucune limitation sur le nombre de parties. Le classement global et les statistiques détaillées sont accessibles à tous."
       },
       "q4": {
-        "question": "Est-ce que Tekizz est gratuit ?",
-        "answer": "Oui, Tekizz est entièrement gratuit. Créez simplement votre compte et commencez à jouer immédiatement. Aucun paiement requis pour accéder à toutes les fonctionnalités."
+        "question": "Quelles catégories de questions ?",
+        "answer": "Algorithmique, structures de données, réseaux, sécurité, DevOps, OS, bases de données, culture tech. Le contenu évolue régulièrement — et tu peux contribuer en soumettant tes propres questions."
       },
       "q5": {
-        "question": "Comment puis-je suivre ma progression ?",
-        "answer": "Un tableau de bord complet vous permet de visualiser vos statistiques : score global, précision par catégorie, historique des parties, et votre position dans le classement. Toutes vos données sont synchronisées automatiquement."
+        "question": "Comment fonctionne le classement ?",
+        "answer": "Basé sur ton score moyen sur toutes tes parties. Mis à jour en temps réel après chaque session. Les classements QCM et Smatch sont indépendants."
       }
-    },
-    "cta": {
-      "title": "Prêt à relever le défi ?",
-      "description": "Rejoignez des milliers de développeurs qui progressent chaque jour avec Tekizz.",
-      "button": "Commencer maintenant"
     }
   }
 }
