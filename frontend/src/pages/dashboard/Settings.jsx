@@ -47,7 +47,7 @@ const SettingsPage = () => {
   };
 
   const handleResetStats = async () => {
-    if (!window.confirm("Reset all your QCM statistics? This cannot be undone.")) return;
+    if (!window.confirm("Réinitialiser toutes vos statistiques QCM ? Cette action est irréversible.")) return;
     setIsResetting(true);
     try {
       await qcmGameService.resetUserStats();
