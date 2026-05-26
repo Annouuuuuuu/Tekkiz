@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Github, Mail, AlertCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,7 +47,7 @@ const Signup = () => {
     if (result.success) {
       navigate("/dashboard");
     } else {
-      setError(result.error || "Registration failed. Please try again.");
+      setError(result.error || t("auth.creatingAccount"));
     }
 
     setIsLoading(false);
@@ -68,7 +68,7 @@ const Signup = () => {
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors mb-6"
             >
               <X className="w-4 h-4 mr-2" />
-              Back to home
+              {t("auth.backToHome")}
             </Link>
 
             {/* Logo/Brand */}
@@ -130,7 +130,7 @@ const Signup = () => {
             <form onSubmit={handleEmailSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">First Name</label>
+                  <label className="text-sm font-medium">{t("auth.firstName")}</label>
                   <input
                     type="text"
                     name="firstName"
@@ -142,7 +142,7 @@ const Signup = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Name</label>
+                  <label className="text-sm font-medium">{t("auth.lastName")}</label>
                   <input
                     type="text"
                     name="lastName"
@@ -154,7 +154,7 @@ const Signup = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Username</label>
+                <label className="text-sm font-medium">{t("auth.username")}</label>
                 <input
                   type="text"
                   name="username"
@@ -166,7 +166,7 @@ const Signup = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
+                <label className="text-sm font-medium">{t("auth.email")}</label>
                 <input
                   type="email"
                   name="email"
@@ -178,7 +178,7 @@ const Signup = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Password</label>
+                <label className="text-sm font-medium">{t("auth.password")}</label>
                 <input
                   type="password"
                   name="password"
@@ -196,7 +196,7 @@ const Signup = () => {
                 className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : t("auth.signUp")}
+                {isLoading ? t("auth.creatingAccount") : t("auth.signUp")}
               </Button>
             </form>
 
@@ -213,7 +213,14 @@ const Signup = () => {
 
             {/* Terms */}
             <p className="text-center text-xs text-muted-foreground mt-4">
-              {t("auth.agreeToTerms")}
+              <Trans
+                i18nKey="auth.agreeToTerms"
+                ns="common"
+                components={{
+                  termsLink: <a href="/terms" className="text-primary hover:underline" />,
+                  privacyLink: <a href="/privacy" className="text-primary hover:underline" />,
+                }}
+              />
             </p>
           </CardContent>
         </Card>

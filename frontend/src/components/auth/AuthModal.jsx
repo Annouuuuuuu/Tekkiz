@@ -186,7 +186,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       // Login Form
                       <form onSubmit={handleEmailLogin} className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Email</label>
+                          <label className="text-sm font-medium">{t("auth.email")}</label>
                           <input
                             type="email"
                             value={loginEmail}
@@ -197,7 +197,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Password</label>
+                          <label className="text-sm font-medium">{t("auth.password")}</label>
                           <input
                             type="password"
                             value={loginPassword}
@@ -221,7 +221,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                       <form onSubmit={handleEmailSignup} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">First Name</label>
+                            <label className="text-sm font-medium">{t("auth.firstName")}</label>
                             <input
                               type="text"
                               name="firstName"
@@ -233,7 +233,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">Last Name</label>
+                            <label className="text-sm font-medium">{t("auth.lastName")}</label>
                             <input
                               type="text"
                               name="lastName"
@@ -245,7 +245,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Username</label>
+                          <label className="text-sm font-medium">{t("auth.username")}</label>
                           <input
                             type="text"
                             name="username"
@@ -257,7 +257,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Email</label>
+                          <label className="text-sm font-medium">{t("auth.email")}</label>
                           <input
                             type="email"
                             name="email"
@@ -269,7 +269,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Password</label>
+                          <label className="text-sm font-medium">{t("auth.password")}</label>
                           <input
                             type="password"
                             name="password"
