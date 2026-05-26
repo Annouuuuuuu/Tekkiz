@@ -4,6 +4,7 @@ import {
   ArrowRight, Shuffle, HelpCircle, Heart, Trophy,
   Clock, ChevronDown, PenLine, Code2, HandHeart,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AuthModal from "@/components/auth/AuthModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,48 +15,19 @@ const LIVE_FEED = [
   { user: "axelr",    val: "940 pts",    mode: "Blitz",    ago: "2m" },
   { user: "sophiabe", val: "rank #12",   mode: "Classic",  ago: "5m" },
   { user: "mrquiz",   val: "1 240 pts",  mode: "Rush",     ago: "8m" },
-  { user: "lena_k",   val: "streak 7j",  mode: "",         ago: "12m" },
+  { user: "lena_k",   val: "streak 7d",  mode: "",         ago: "12m" },
   { user: "devhub",   val: "780 pts",    mode: "Blitz",    ago: "15m" },
   { user: "camille7", val: "rank #3",    mode: "Classic",  ago: "18m" },
   { user: "noxvoid",  val: "1 080 pts",  mode: "Survival", ago: "22m" },
   { user: "julek",    val: "860 pts",    mode: "Rush",     ago: "27m" },
 ];
 
-const FAQ_ITEMS = [
-  {
-    q: "C'est quoi Tekizz ?",
-    a: "Une plateforme de quiz pour les passionnés de tech. Deux jeux : QCM pour tester tes connaissances sous pression, Smatch pour associer termes et définitions en temps limité.",
-  },
-  {
-    q: "Pour qui c'est fait ?",
-    a: "Pour tous ceux qui s'intéressent à la tech — devs, étudiants, SRE, data scientists, passionnés de cybersécurité. Si tu veux tester et renforcer tes fondamentaux, Tekizz est fait pour toi.",
-  },
-  {
-    q: "C'est gratuit ?",
-    a: "Oui. Créer un compte suffit. Aucune limitation sur le nombre de parties. Le classement global et les statistiques détaillées sont accessibles à tous.",
-  },
-  {
-    q: "Quelles catégories de questions ?",
-    a: "Algorithmique, structures de données, réseaux, sécurité, DevOps, OS, bases de données, culture tech. Le contenu évolue régulièrement — et tu peux contribuer en soumettant tes propres questions.",
-  },
-  {
-    q: "Comment fonctionne le classement ?",
-    a: "Basé sur ton score moyen sur toutes tes parties. Mis à jour en temps réel après chaque session. Les classements QCM et Smatch sont indépendants.",
-  },
-];
-
 // ─────────────────────────────────────────────────────────────────────────────
 // INTERACTIVE QCM DEMO CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-function GameCard() {
+function GameCard({ question, answers }) {
   const [picked, setPicked] = useState(null);
-  const answers = [
-    { l: "A", text: "Couche transport" },
-    { l: "B", text: "Couche application" },
-    { l: "C", text: "Couche réseau" },
-    { l: "D", text: "Couche liaison" },
-  ];
   const CORRECT = 1;
   const revealed = picked !== null;
 
@@ -88,7 +60,7 @@ function GameCard() {
             </span>
           </div>
           <p className="text-base font-semibold leading-snug text-white/90">
-            DNS opère sur quelle couche du modèle OSI ?
+            {question}
           </p>
         </div>
 
@@ -229,11 +201,33 @@ function FaqItem({ q, a, index }) {
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
 
 export default function Home() {
+  const { t } = useTranslation("home");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("signup");
   const heroRef = useRef(null);
 
   const open = (mode) => { setAuthMode(mode); setAuthOpen(true); };
+
+  const demoAnswers = [
+    { l: "A", text: t("home.demo.answerA") },
+    { l: "B", text: t("home.demo.answerB") },
+    { l: "C", text: t("home.demo.answerC") },
+    { l: "D", text: t("home.demo.answerD") },
+  ];
+
+  const faqItems = [
+    { question: t("home.faq.q1.question"), answer: t("home.faq.q1.answer") },
+    { question: t("home.faq.q2.question"), answer: t("home.faq.q2.answer") },
+    { question: t("home.faq.q3.question"), answer: t("home.faq.q3.answer") },
+    { question: t("home.faq.q4.question"), answer: t("home.faq.q4.answer") },
+    { question: t("home.faq.q5.question"), answer: t("home.faq.q5.answer") },
+  ];
+
+  const contributeItems = [
+    { Icon: PenLine, title: t("home.contribute.contentTitle"), body: t("home.contribute.contentBody") },
+    { Icon: Code2,   title: t("home.contribute.codeTitle"),    body: t("home.contribute.codeBody") },
+    { Icon: HandHeart, title: t("home.contribute.supportTitle"), body: t("home.contribute.supportBody") },
+  ];
 
   // Cursor-tracking spotlight — CSS vars only, zero re-renders
   useEffect(() => {
@@ -276,7 +270,7 @@ export default function Home() {
         <div className="relative flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-20 pt-24 pb-16 lg:pt-28 lg:pb-24 max-w-[1400px] mx-auto w-full">
           <div className="max-w-3xl xl:max-w-[52%]">
 
-            {/* Live indicator — compact inline */}
+            {/* Live indicator */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -284,24 +278,24 @@ export default function Home() {
               className="mb-4 flex items-center gap-2 text-[10px] font-mono tracking-[0.18em] text-white/30 uppercase"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              2 845 joueurs en ligne
+              {t("home.live", { count: "2 845" })}
             </motion.p>
 
-            {/* Headline — 4-line bottom-up reveal */}
+            {/* Headline */}
             <h1 className="text-[clamp(2rem,5.5vw,5rem)] font-black leading-[0.9] tracking-[-0.03em]">
               {[
-                { text: "PROUVE QUE", accent: false },
-                { text: "TU SAIS CE QUE",    accent: false },
-                { text: "TU FAIS.",   accent: true },
-              ].map(({ text, accent }, i) => (
-                <div key={i} className="overflow-hidden">
+                { key: "home.hero.line1", accent: false },
+                { key: "home.hero.line2", accent: false },
+                { key: "home.hero.line3", accent: true },
+              ].map(({ key, accent }, i) => (
+                <div key={key} className="overflow-hidden">
                   <motion.div
                     initial={{ y: "110%" }}
                     animate={{ y: "0%" }}
                     transition={{ delay: 0.15 + i * 0.12, duration: 0.7, ease: EASE_OUT_EXPO }}
                     className={accent ? "text-primary" : ""}
                   >
-                    {text}
+                    {t(key)}
                   </motion.div>
                 </div>
               ))}
@@ -315,13 +309,10 @@ export default function Home() {
               className="mt-8 max-w-[520px] space-y-2"
             >
               <p className="text-[15px] font-semibold text-white/70 leading-snug">
-                La tech, ça se partage. Et ça se mesure.
+                {t("home.hero.tagline")}
               </p>
               <p className="text-sm text-white/38 leading-relaxed">
-                Une plateforme pensée pour tous ceux qui vivent de la tech — ou
-                rêvent d'y entrer. Révise tes bases, découvre de nouveaux
-                concepts, affronte les meilleurs. Que tu sois en école, en
-                reconversion ou en poste, ta place est ici.
+                {t("home.hero.description")}
               </p>
             </motion.div>
 
@@ -336,14 +327,14 @@ export default function Home() {
                 onClick={() => open("signup")}
                 className="group inline-flex items-center gap-2 bg-primary rounded-full px-8 py-4 text-sm font-bold text-white shadow-xl shadow-primary/20 hover:brightness-110 hover:shadow-primary/35 transition-all"
               >
-                Commencer — c'est gratuit
+                {t("home.hero.ctaPrimary")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
               <button
                 onClick={() => open("login")}
                 className="inline-flex items-center px-8 py-4 rounded-full text-sm font-semibold text-white/40 border border-white/[0.09] hover:border-white/25 hover:text-white/70 transition-all"
               >
-                Connexion
+                {t("home.hero.ctaSecondary")}
               </button>
             </motion.div>
 
@@ -355,20 +346,20 @@ export default function Home() {
               className="mt-12 pt-8 border-t border-white/[0.07] grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-0 sm:divide-x sm:divide-white/[0.07]"
             >
               {[
-                { val: "2.8K+", label: "joueurs" },
-                { val: "50K+",  label: "questions" },
-                { val: "1.2M",  label: "parties" },
-                { val: "30+",   label: "pays" },
+                { val: "2.8K+", labelKey: "home.hero.statPlayers" },
+                { val: "50K+",  labelKey: "home.hero.statQuestions" },
+                { val: "1.2M",  labelKey: "home.hero.statGames" },
+                { val: "30+",   labelKey: "home.hero.statCountries" },
               ].map(s => (
-                <div key={s.label} className="sm:px-6 first:pl-0 last:pr-0">
+                <div key={s.labelKey} className="sm:px-6 first:pl-0 last:pr-0">
                   <p className="text-2xl font-black tabular-nums">{s.val}</p>
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/25 mt-1">{s.label}</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/25 mt-1">{t(s.labelKey)}</p>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* Floating game card — xl+ screens, vertically centred, 3D tilt */}
+          {/* Floating game card — xl+ screens */}
           <div className="absolute right-12 top-1/2 -translate-y-1/2 hidden xl:block">
             <motion.div
               initial={{ opacity: 0, x: 60 }}
@@ -381,7 +372,7 @@ export default function Home() {
                 filter: "drop-shadow(0px 40px 80px rgba(0,0,0,0.85))",
               }}
             >
-              <GameCard />
+              <GameCard question={t("home.demo.question")} answers={demoAnswers} />
             </motion.div>
           </div>
         </div>
@@ -405,11 +396,11 @@ export default function Home() {
           className="mb-14"
         >
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/25 mb-4">
-            Les arènes
+            {t("home.games.sectionLabel")}
           </p>
           <h2 className="text-[clamp(2.5rem,6vw,6rem)] font-black leading-[0.9] tracking-tight">
-            Choisis.<br />
-            <span className="text-white/25">Joue. Grimpe.</span>
+            {t("home.games.headline1")}<br />
+            <span className="text-white/25">{t("home.games.headline2")}</span>
           </h2>
         </motion.div>
 
@@ -435,28 +426,27 @@ export default function Home() {
                   <div>
                     <h3 className="text-4xl font-black leading-none tracking-tight">QCM</h3>
                     <p className="text-[10px] text-white/25 uppercase tracking-widest mt-0.5">
-                      Quiz à choix multiples
+                      {t("home.games.qcm.tagline")}
                     </p>
                   </div>
                 </div>
 
                 <p className="text-sm text-white/45 leading-relaxed mb-8 max-w-xs">
-                  Timer global, 3 vies, difficulté progressive EASY → EXPERT.
-                  Chaque partie compte dans ton classement global.
+                  {t("home.games.qcm.description")}
                 </p>
 
                 <div className="space-y-2">
                   {[
-                    { name: "Blitz",   time: "2 min",  pts: "+15 pts/q", note: "Pression max" },
-                    { name: "Rush",    time: "5 min",  pts: "+10 pts/q", note: "Rythme soutenu" },
-                    { name: "Classic", time: "10 min", pts: "+8 pts/q",  note: "Réflexion profonde" },
+                    { name: "Blitz",   time: "2 min",  pts: "+15 pts/q", noteKey: "home.games.qcm.blitzNote" },
+                    { name: "Rush",    time: "5 min",  pts: "+10 pts/q", noteKey: "home.games.qcm.rushNote" },
+                    { name: "Classic", time: "10 min", pts: "+8 pts/q",  noteKey: "home.games.qcm.classicNote" },
                   ].map(m => (
                     <div
                       key={m.name}
                       className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.04] hover:border-white/10 transition-colors"
                     >
                       <span className="text-xs font-black w-14 text-white">{m.name}</span>
-                      <span className="text-xs text-white/30 flex-1">{m.note}</span>
+                      <span className="text-xs text-white/30 flex-1">{t(m.noteKey)}</span>
                       <span className="text-xs text-white/35 font-mono">{m.time}</span>
                       <span className="text-xs text-primary font-black">{m.pts}</span>
                     </div>
@@ -465,12 +455,12 @@ export default function Home() {
               </div>
 
               <div className="sm:w-[260px] shrink-0 flex items-center justify-center py-2">
-                <GameCard />
+                <GameCard question={t("home.demo.question")} answers={demoAnswers} />
               </div>
             </div>
 
             <div className="relative mt-8 flex items-center gap-2 text-xs text-white/25 group-hover:text-white/60 transition-colors">
-              Jouer maintenant
+              {t("home.games.qcm.playNow")}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </div>
           </motion.div>
@@ -497,11 +487,10 @@ export default function Home() {
               </div>
 
               <h3 className="text-4xl font-black leading-none tracking-tight mb-1">SMATCH</h3>
-              <p className="text-[10px] text-white/25 uppercase tracking-widest mb-6">Speed matching</p>
+              <p className="text-[10px] text-white/25 uppercase tracking-widest mb-6">{t("home.games.smatch.tagline")}</p>
 
               <p className="text-sm text-white/45 leading-relaxed mb-10">
-                Associe termes et définitions avant la fin du timer. Le jeu
-                le plus addictif pour ancrer les concepts tech.
+                {t("home.games.smatch.description")}
               </p>
 
               <div className="divide-y divide-white/[0.05]">
@@ -522,7 +511,7 @@ export default function Home() {
             </div>
 
             <div className="relative mt-8 flex items-center gap-2 text-xs text-white/25 group-hover:text-white/60 transition-colors">
-              Découvrir
+              {t("home.games.smatch.discover")}
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </div>
           </motion.div>
@@ -550,7 +539,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="text-[11px] font-black uppercase tracking-[0.28em] text-white/20 mb-10"
           >
-            Notre conviction
+            {t("home.manifesto.label")}
           </motion.p>
 
           <div className="overflow-hidden">
@@ -561,8 +550,8 @@ export default function Home() {
               transition={{ duration: 0.85, ease: EASE_OUT_EXPO }}
               className="text-[clamp(1.85rem,4.5vw,4rem)] font-black leading-[1.07] tracking-[-0.02em]"
             >
-              Travailler dans la tech sans maîtriser ses fondamentaux,{" "}
-              <span className="text-white/30">c'est construire sur du sable.</span>
+              {t("home.manifesto.quote")}{" "}
+              <span className="text-white/30">{t("home.manifesto.quoteLight")}</span>
             </motion.h2>
           </div>
 
@@ -573,8 +562,7 @@ export default function Home() {
             transition={{ delay: 0.28, duration: 0.6 }}
             className="mt-8 text-white/40 text-[15px] leading-relaxed max-w-md"
           >
-            Tekizz te challenge. Pas pour te noter — pour révéler ce que tu
-            ne sais pas encore et transformer ça en force.
+            {t("home.manifesto.description")}
           </motion.p>
 
           <motion.div
@@ -588,14 +576,14 @@ export default function Home() {
               onClick={() => open("signup")}
               className="group inline-flex items-center gap-2 bg-white text-black rounded-full px-10 py-4 text-sm font-black hover:bg-white/90 transition-all shadow-2xl shadow-white/10"
             >
-              Rejoindre l'arène
+              {t("home.manifesto.ctaPrimary")}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </button>
             <button
               onClick={() => open("login")}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold text-white/40 border border-white/[0.1] hover:text-white/70 hover:border-white/25 transition-all"
             >
-              J'ai déjà un compte
+              {t("home.manifesto.ctaSecondary")}
             </button>
           </motion.div>
         </div>
@@ -614,33 +602,17 @@ export default function Home() {
           className="mb-16"
         >
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/25 mb-4">
-            Communauté · Open
+            {t("home.contribute.sectionLabel")}
           </p>
           <h2 className="text-[clamp(2.5rem,6vw,6rem)] font-black leading-[0.9] tracking-tight">
-            Tu écris.<br />
-            <span className="text-white/25">La communauté joue.</span>
+            {t("home.contribute.headline1")}<br />
+            <span className="text-white/25">{t("home.contribute.headline2")}</span>
           </h2>
         </motion.div>
 
         {/* 3 contribution spaces */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14">
-          {[
-            {
-              Icon: PenLine,
-              title: "Contenu",
-              body: "Enrichis la plateforme en soumettant du contenu — questions, ressources, corrections — pour faire évoluer les jeux.",
-            },
-            {
-              Icon: Code2,
-              title: "Code",
-              body: "Signale des bugs, propose de nouvelles fonctionnalités ou contribue directement au code source de la plateforme.",
-            },
-            {
-              Icon: HandHeart,
-              title: "Soutien",
-              body: "Aide à financer l'hébergement et le développement pour que Tekizz reste gratuit et continue d'évoluer.",
-            },
-          ].map(({ Icon, title, body }, i) => (
+          {contributeItems.map(({ Icon, title, body }, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 24 }}
@@ -668,17 +640,17 @@ export default function Home() {
         >
           <div>
             <p className="text-base font-bold text-white mb-1">
-              La plateforme évolue grâce à sa communauté.
+              {t("home.contribute.bannerTitle")}
             </p>
             <p className="text-sm text-white/40">
-              Chacun contribue à sa façon — contenu, code ou soutien financier.
+              {t("home.contribute.bannerSub")}
             </p>
           </div>
           <button
             onClick={() => open("signup")}
             className="group shrink-0 inline-flex items-center gap-2 bg-white text-black rounded-full px-7 py-3.5 text-sm font-black hover:bg-white/90 transition-all whitespace-nowrap"
           >
-            Contribuer
+            {t("home.contribute.ctaButton")}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
         </motion.div>
@@ -696,7 +668,7 @@ export default function Home() {
             className="mb-16"
           >
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/20 mb-4">
-              Questions fréquentes
+              {t("home.faq.sectionLabel")}
             </p>
             <h2 className="text-[clamp(3rem,8vw,7rem)] font-black leading-none tracking-tight">
               FAQ
@@ -704,8 +676,8 @@ export default function Home() {
           </motion.div>
 
           <div>
-            {FAQ_ITEMS.map((item, i) => (
-              <FaqItem key={item.q} q={item.q} a={item.a} index={i} />
+            {faqItems.map((item, i) => (
+              <FaqItem key={i} q={item.question} a={item.answer} index={i} />
             ))}
           </div>
         </div>
