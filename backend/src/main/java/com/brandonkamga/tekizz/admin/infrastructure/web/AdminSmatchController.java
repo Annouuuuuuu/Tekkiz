@@ -1,4 +1,4 @@
-package com.brandonkamga.tekizz.controller;
+package com.brandonkamga.tekizz.admin.infrastructure.web;
 
 import com.brandonkamga.tekizz.domain.*;
 import com.brandonkamga.tekizz.dto.ApiResponse;

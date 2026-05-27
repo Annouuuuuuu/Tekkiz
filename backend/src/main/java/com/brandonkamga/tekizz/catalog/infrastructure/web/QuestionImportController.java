@@ -1,4 +1,4 @@
-package com.brandonkamga.tekizz.controller;
+package com.brandonkamga.tekizz.catalog.infrastructure.web;
 
 import com.brandonkamga.tekizz.dto.ApiResponse;
 import com.brandonkamga.tekizz.dto.importData.QuestionImportRequest;
