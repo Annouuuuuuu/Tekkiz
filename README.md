@@ -1,6 +1,6 @@
 # Tekizz
 
-Plateforme de formation tech gamifiée. Les utilisateurs apprennent la programmation à travers deux modes de jeu — QCM et Speed Matching (Smatch) — avec système de contribution communautaire, classements et espace admin complet.
+Plateforme de formation tech gamifiée. Apprends la programmation à travers deux modes de jeu interactifs : des QCM chronométrés et du Speed Matching (Smatch). Le tout avec un système de contribution communautaire, des classements globaux et un espace d'administration complet.
 
 ---
 
@@ -9,9 +9,9 @@ Plateforme de formation tech gamifiée. Les utilisateurs apprennent la programma
 | Couche | Technologie |
 |--------|-------------|
 | Frontend | React 19, Vite 7, Tailwind CSS 4, Framer Motion |
-| Backend | Spring Boot 4, Java 21, JPA/Hibernate |
+| Backend | Spring Boot 4, Java 21, JPA / Hibernate |
 | Base de données | PostgreSQL 16 |
-| Auth | JWT + OAuth2 (Google, GitHub) |
+| Authentification | JWT + OAuth2 (Google, GitHub) |
 | Infra | Docker, Docker Compose |
 
 ---
@@ -20,28 +20,41 @@ Plateforme de formation tech gamifiée. Les utilisateurs apprennent la programma
 
 ```
 Tekizz/
-├── backend/      # API REST — architecture DDD hexagonale
-├── frontend/     # SPA React
-└── docker-compose.yml
+├── backend/           # API REST — architecture DDD hexagonale (Java / Spring Boot)
+├── frontend/          # SPA React
+└── docker-compose.yml # Lance l'ensemble de la stack (PostgreSQL + Backend + Frontend)
 ```
 
 ---
 
 ## Lancer en local
 
-### Prérequis
-- Docker et Docker Compose installés
+### Via Docker Compose (recommandé)
 
-### Démarrage
+La façon la plus simple de démarrer l'intégralité du projet en une seule commande.
+
+**Prérequis** : Docker et Docker Compose installés.
 
 ```bash
-cp backend/.env.example backend/.env
-# Renseigner les variables dans backend/.env
+# 1. Cloner le dépôt
+git clone https://github.com/LesCracks-OS/Tekizz.git
+cd Tekizz
 
+# 2. Configurer les variables d'environnement
+cp backend/.env.example backend/.env
+# Ouvrir backend/.env et renseigner les valeurs (DB, JWT, OAuth2…)
+
+# 3. Démarrer toute la stack
 docker compose up -d
 ```
 
-Docker Compose démarre automatiquement PostgreSQL, le backend et le frontend. Aucune installation manuelle de Java ou Node n'est nécessaire.
+Docker Compose démarre automatiquement PostgreSQL, le backend Spring Boot et le frontend React/Nginx. Aucune installation de Java, Node ou PostgreSQL requise sur la machine.
+
+### Développement séparé (frontend / backend indépendants)
+
+Si tu travailles uniquement sur une partie du projet, consulte :
+- [backend/README.md](backend/README.md) pour lancer le backend seul
+- [frontend/README.md](frontend/README.md) pour lancer le frontend seul
 
 ---
 

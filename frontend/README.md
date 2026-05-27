@@ -1,21 +1,22 @@
 # Tekizz — Frontend
 
-SPA React pour la plateforme de formation tech gamifiée Tekizz.
+SPA React pour la plateforme de formation tech gamifiée Tekizz. Interface utilisateur pour les modes de jeu QCM et Speed Matching, le tableau de bord, les classements et l'espace d'administration.
 
 ---
 
 ## Stack
 
-| Technologie | Version |
-|-------------|---------|
-| React | 19 |
-| Vite | 7 |
-| Tailwind CSS | 4 |
-| React Router | 7 |
-| Framer Motion | 12 |
-| Radix UI | — |
-| Recharts | 3 |
-| Lucide React | — |
+| Technologie | Version | Rôle |
+|-------------|---------|------|
+| React | 19 | Framework UI |
+| Vite | 7 | Bundler & dev server |
+| Tailwind CSS | 4 | Styling utilitaire |
+| React Router | 7 | Routing SPA |
+| Framer Motion | 12 | Animations |
+| Radix UI | — | Composants UI accessibles |
+| Recharts | 3 | Graphiques de performance |
+| Lucide React | — | Icônes |
+| Sonner | — | Notifications toast |
 
 ---
 
@@ -24,53 +25,89 @@ SPA React pour la plateforme de formation tech gamifiée Tekizz.
 ```
 src/
 ├── pages/
-│   ├── dashboard/       # Play, QcmGame, SmatchGame, Performance, Leaderboard, Contribute, Settings
-│   ├── admin/
-│   │   ├── qcm/         # Categories, Questions, Tags, Sessions, Config, Contributions
-│   │   └── smatch/      # Decks, DeckEditor, Sessions, Config
-│   ├── Home.jsx
-│   ├── Login.jsx / Signup.jsx
-│   └── OAuthCallback.jsx
+│   ├── Home.jsx               # Landing page
+│   ├── Login.jsx              # Connexion
+│   ├── Signup.jsx             # Inscription
+│   ├── OAuthCallback.jsx      # Callback OAuth2
+│   ├── dashboard/
+│   │   ├── Play.jsx           # Sélection du jeu
+│   │   ├── QcmGame*.jsx       # Flux de jeu QCM (config → jeu → résultat)
+│   │   ├── SmatchGame*.jsx    # Flux Speed Matching (config → jeu → résultat)
+│   │   ├── Performance.jsx    # Statistiques personnelles
+│   │   ├── Leaderboard.jsx    # Classement global
+│   │   ├── Contribute.jsx     # Soumission de questions
+│   │   └── Settings.jsx       # Paramètres du compte
+│   └── admin/
+│       ├── qcm/               # Gestion catégories, questions, tags, sessions, contributions
+│       └── smatch/            # Gestion decks, éditeur de deck, sessions
 ├── components/
-│   ├── ui/              # Composants Radix UI (Button, Card, Select, Tabs…)
-│   ├── layout/          # Navbar, Sidebar, Footer
-│   ├── dashboard/       # Composants Play et Performance
-│   ├── admin/           # Composants admin réutilisables
-│   └── auth/            # Guards et formulaires
-├── contexts/            # AuthContext, ThemeContext
+│   ├── ui/                    # Composants Radix UI (Button, Card, Select, Tabs, Badge…)
+│   ├── layout/                # Navbar, Sidebar, Footer
+│   ├── dashboard/             # Composants spécifiques Play et Performance
+│   ├── admin/                 # Composants admin réutilisables (tableaux, formulaires)
+│   └── auth/                  # Route guards, formulaires d'authentification
+├── contexts/
+│   ├── AuthContext.jsx        # Gestion de la session utilisateur (JWT, OAuth2)
+│   └── ThemeContext.jsx       # Mode sombre / clair
 ├── services/
-│   ├── api/             # apiClient.js, endpoints.js, errorHandler.js
+│   ├── api/
+│   │   ├── apiClient.js       # Instance Axios + intercepteurs JWT
+│   │   ├── endpoints.js       # Centralisation des URLs d'API
+│   │   └── errorHandler.js    # Gestion globale des erreurs HTTP
 │   ├── auth.service.js
 │   ├── qcmGame.service.js
+│   ├── smatchGame.service.js
 │   ├── contribution.service.js
 │   └── admin.service.js
-├── layouts/             # DashboardLayout, AdminLayout
-└── lib/                 # Utilitaires (cn, …)
+├── layouts/
+│   ├── DashboardLayout.jsx    # Layout avec sidebar pour les utilisateurs
+│   └── AdminLayout.jsx        # Layout admin
+└── lib/
+    └── utils.js               # Utilitaires (cn, formatDate…)
 ```
 
 ---
 
 ## Lancer le projet
 
-### Via Docker Compose (recommandé)
+### Option 1 — Docker Compose global (recommandé)
 
-Depuis la racine du projet :
+Lance l'ensemble de la stack depuis la racine du projet :
 
 ```bash
+cd ..   # depuis le dossier frontend/
 docker compose up -d
 ```
 
-### Développement local
+Le frontend est servi par Nginx et accessible dès que le backend est prêt.
+
+### Option 2 — Développement local
+
+Pour travailler sur le frontend seul avec hot-reload :
 
 ```bash
+# Prérequis : Node.js 20+ et pnpm
+
+# 1. Installer les dépendances
 pnpm install
+
+# 2. Configurer la variable d'environnement
+cp .env.example .env
+# ou créer un fichier .env avec :
+# VITE_API_BASE_URL=http://localhost:8080
+
+# 3. Démarrer le serveur de développement
 pnpm dev
 ```
 
-Créer un `.env` à la racine du dossier `frontend/` :
+Le backend doit tourner en parallèle pour que les appels API fonctionnent (voir [backend/README.md](../backend/README.md)).
 
-```env
-VITE_API_BASE_URL=http://localhost:8080
+### Autres commandes utiles
+
+```bash
+pnpm build      # Build de production dans dist/
+pnpm preview    # Prévisualiser le build de production
+pnpm lint       # Vérification ESLint
 ```
 
 ---
