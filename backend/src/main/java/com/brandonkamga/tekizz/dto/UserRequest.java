@@ -1,6 +1,6 @@
 package com.brandonkamga.tekizz.dto;
 
-import com.brandonkamga.tekizz.domain.ProviderType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

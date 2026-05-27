@@ -1,9 +1,9 @@
 package com.brandonkamga.tekizz.iam.infrastructure.persistence.mapper;
 
-import com.brandonkamga.tekizz.domain.Provider;
-import com.brandonkamga.tekizz.domain.ProviderType;
-import com.brandonkamga.tekizz.domain.Role;
-import com.brandonkamga.tekizz.domain.RoleType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.RoleType;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Provider;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
 import com.brandonkamga.tekizz.iam.domain.model.Profile;
 import com.brandonkamga.tekizz.iam.domain.model.User;
 import com.brandonkamga.tekizz.iam.domain.model.vo.Email;
@@ -12,8 +12,8 @@ import com.brandonkamga.tekizz.iam.domain.model.vo.UserId;
 import com.brandonkamga.tekizz.iam.domain.model.vo.Username;
 import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.ProfileJpaEntity;
 import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
-import com.brandonkamga.tekizz.repository.ProviderRepository;
-import com.brandonkamga.tekizz.repository.RoleRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.ProviderRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.RoleRepository;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,7 +67,7 @@ public class UserPersistenceMapper {
 
     /**
      * Convert a domain model to a JPA entity (for saving).
-     * Looks up Role and Provider by name from the legacy repositories.
+     * Looks up Role and Provider by name from the IAM repositories.
      */
     public UserJpaEntity toJpaEntity(User domain) {
         if (domain == null) return null;

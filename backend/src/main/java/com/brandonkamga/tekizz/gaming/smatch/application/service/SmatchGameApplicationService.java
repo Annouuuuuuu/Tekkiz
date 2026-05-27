@@ -1,13 +1,22 @@
 package com.brandonkamga.tekizz.gaming.smatch.application.service;
 
-import com.brandonkamga.tekizz.domain.*;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
 import com.brandonkamga.tekizz.gaming.smatch.application.port.in.*;
 import com.brandonkamga.tekizz.gaming.smatch.application.port.in.GetSmatchDecksUseCase.*;
 import com.brandonkamga.tekizz.gaming.smatch.application.port.in.GetSmatchResultUseCase.SmatchResultView;
 import com.brandonkamga.tekizz.gaming.smatch.application.port.in.StartSmatchSessionUseCase.SmatchSessionView;
 import com.brandonkamga.tekizz.gaming.smatch.application.port.in.SubmitSmatchAttemptUseCase.AttemptResultView;
-import com.brandonkamga.tekizz.repository.*;
+import com.brandonkamga.tekizz.gaming.smatch.domain.model.vo.SmatchGameMode;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.entity.SmatchAttemptJpaEntity;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.entity.SmatchDeckJpaEntity;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.entity.SmatchPairJpaEntity;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.entity.SmatchSessionJpaEntity;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchAttemptRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchDeckRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchPairRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchSessionRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,13 +37,13 @@ public class SmatchGameApplicationService
     private final SmatchPairRepository pairRepository;
     private final SmatchSessionRepository sessionRepository;
     private final SmatchAttemptRepository attemptRepository;
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     public SmatchGameApplicationService(SmatchDeckRepository deckRepository,
                                         SmatchPairRepository pairRepository,
                                         SmatchSessionRepository sessionRepository,
                                         SmatchAttemptRepository attemptRepository,
-                                        UserRepository userRepository) {
+                                        UserJpaRepository userRepository) {
         this.deckRepository = deckRepository;
         this.pairRepository = pairRepository;
         this.sessionRepository = sessionRepository;
@@ -46,16 +55,16 @@ public class SmatchGameApplicationService
 
     @Override
     public SmatchSessionView start(StartSmatchSessionCommand command) {
-        SmatchDeck deck = deckRepository.findById(command.deckId())
+        SmatchDeckJpaEntity deck = deckRepository.findById(command.deckId())
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchDeck", "id", command.deckId()));
 
         SmatchGameMode mode = parseMode(command.gameMode());
-        User user = userRepository.findById(command.userId())
+        UserJpaEntity user = userRepository.findById(command.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", command.userId()));
 
         int totalPairs = (int) pairRepository.countByDeckIdAndIsActiveTrue(deck.getId());
 
-        SmatchSession session = SmatchSession.builder()
+        SmatchSessionJpaEntity session = SmatchSessionJpaEntity.builder()
                 .user(user)
                 .deck(deck)
                 .gameMode(mode)
@@ -75,14 +84,14 @@ public class SmatchGameApplicationService
 
     @Override
     public AttemptResultView submit(SubmitAttemptCommand command) {
-        SmatchSession session = sessionRepository.findById(command.sessionId())
+        SmatchSessionJpaEntity session = sessionRepository.findById(command.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchSession", "id", command.sessionId()));
 
         if (session.isCompleted()) {
             throw new IllegalStateException("Session is already completed");
         }
 
-        SmatchPair pair = pairRepository.findById(command.pairId())
+        SmatchPairJpaEntity pair = pairRepository.findById(command.pairId())
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchPair", "id", command.pairId()));
 
         if (!pair.getDeck().getId().equals(session.getDeck().getId())) {
@@ -93,7 +102,7 @@ public class SmatchGameApplicationService
         boolean correct = Boolean.TRUE.equals(pair.getIsActive());
         int pointsEarned = correct ? mode.getPointsPerCorrect() : 0;
 
-        SmatchAttempt attempt = SmatchAttempt.builder()
+        SmatchAttemptJpaEntity attempt = SmatchAttemptJpaEntity.builder()
                 .session(session)
                 .pair(pair)
                 .isCorrect(correct)
@@ -134,7 +143,7 @@ public class SmatchGameApplicationService
     @Override
     @Transactional(readOnly = true)
     public SmatchSessionView getSession(Long sessionId) {
-        SmatchSession session = sessionRepository.findById(sessionId)
+        SmatchSessionJpaEntity session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchSession", "id", sessionId));
         int totalPairs = (int) pairRepository.countByDeckIdAndIsActiveTrue(session.getDeck().getId());
         return toSessionView(session, session.getDeck(), totalPairs);
@@ -145,7 +154,7 @@ public class SmatchGameApplicationService
     @Override
     @Transactional(readOnly = true)
     public SmatchResultView getResult(Long sessionId) {
-        SmatchSession session = sessionRepository.findById(sessionId)
+        SmatchSessionJpaEntity session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchSession", "id", sessionId));
         int totalPairs = (int) pairRepository.countByDeckIdAndIsActiveTrue(session.getDeck().getId());
         Long duration = session.getCompletedAt() != null
@@ -167,7 +176,7 @@ public class SmatchGameApplicationService
 
     @Override
     public void abandon(Long sessionId) {
-        SmatchSession session = sessionRepository.findById(sessionId)
+        SmatchSessionJpaEntity session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchSession", "id", sessionId));
         if (!session.isCompleted()) {
             session.complete();
@@ -180,7 +189,7 @@ public class SmatchGameApplicationService
     @Override
     @Transactional(readOnly = true)
     public List<SmatchDeckView> getActiveDecks(Long categoryId) {
-        List<SmatchDeck> decks = categoryId != null
+        List<SmatchDeckJpaEntity> decks = categoryId != null
                 ? deckRepository.findByCategoryId(categoryId)
                 : deckRepository.findByIsActiveTrue();
         return decks.stream()
@@ -196,7 +205,7 @@ public class SmatchGameApplicationService
     @Override
     @Transactional(readOnly = true)
     public SmatchDeckDetailView getDeckById(Long deckId) {
-        SmatchDeck deck = deckRepository.findById(deckId)
+        SmatchDeckJpaEntity deck = deckRepository.findById(deckId)
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchDeck", "id", deckId));
         List<SmatchPairView> pairs = pairRepository.findByDeckIdAndIsActiveTrue(deck.getId()).stream()
                 .map(p -> new SmatchPairView(p.getId(), p.getTerm(), p.getDefinition(), p.getHint()))
@@ -211,7 +220,7 @@ public class SmatchGameApplicationService
     // ─── Session ownership ────────────────────────────────────────────────────
 
     public void validateOwnership(Long sessionId, Long userId) {
-        SmatchSession session = sessionRepository.findById(sessionId)
+        SmatchSessionJpaEntity session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("SmatchSession", "id", sessionId));
         if (!session.getUser().getId().equals(userId)) {
             throw new AccessDeniedException("You do not own this session");
@@ -228,7 +237,7 @@ public class SmatchGameApplicationService
         }
     }
 
-    private SmatchSessionView toSessionView(SmatchSession session, SmatchDeck deck, int totalPairs) {
+    private SmatchSessionView toSessionView(SmatchSessionJpaEntity session, SmatchDeckJpaEntity deck, int totalPairs) {
         int livesLeft = session.getLivesRemaining() != null
                 ? session.getLivesRemaining()
                 : session.getGameMode().getMaxLives();

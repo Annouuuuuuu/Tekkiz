@@ -1,7 +1,7 @@
 package com.brandonkamga.tekizz.iam.infrastructure.persistence.entity;
 
-import com.brandonkamga.tekizz.domain.Provider;
-import com.brandonkamga.tekizz.domain.Role;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Provider;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,6 +1,6 @@
 package com.brandonkamga.tekizz.dto.qcm;
 
-import com.brandonkamga.tekizz.domain.GameMode;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.GameMode;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

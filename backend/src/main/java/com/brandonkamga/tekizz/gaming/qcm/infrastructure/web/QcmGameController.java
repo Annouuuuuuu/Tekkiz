@@ -4,7 +4,7 @@ import com.brandonkamga.tekizz.dto.ApiResponse;
 import com.brandonkamga.tekizz.dto.qcm.*;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
 import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
-import com.brandonkamga.tekizz.service.interfaces.QcmGameService;
+import com.brandonkamga.tekizz.gaming.qcm.application.service.QcmGameApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/games/qcm")
 public class QcmGameController {
 
-    private final QcmGameService qcmGameService;
+    private final QcmGameApplicationService qcmGameService;
     private final UserJpaRepository userRepository;
 
-    public QcmGameController(QcmGameService qcmGameService, UserJpaRepository userRepository) {
+    public QcmGameController(QcmGameApplicationService qcmGameService, UserJpaRepository userRepository) {
         this.qcmGameService = qcmGameService;
         this.userRepository = userRepository;
     }

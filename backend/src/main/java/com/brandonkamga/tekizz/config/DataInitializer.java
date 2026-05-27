@@ -1,34 +1,34 @@
 package com.brandonkamga.tekizz.config;
 
-import com.brandonkamga.tekizz.domain.Category;
-import com.brandonkamga.tekizz.domain.Game;
-import com.brandonkamga.tekizz.domain.GameStatus;
-import com.brandonkamga.tekizz.domain.GameStatusType;
-import com.brandonkamga.tekizz.domain.GameType;
-import com.brandonkamga.tekizz.domain.GameTypeName;
-import com.brandonkamga.tekizz.domain.Provider;
-import com.brandonkamga.tekizz.domain.ProviderType;
-import com.brandonkamga.tekizz.domain.QuestionLevel;
-import com.brandonkamga.tekizz.domain.QuestionLevelType;
-import com.brandonkamga.tekizz.domain.QuestionStatus;
-import com.brandonkamga.tekizz.domain.QuestionStatusType;
-import com.brandonkamga.tekizz.domain.Role;
-import com.brandonkamga.tekizz.domain.RoleType;
-import com.brandonkamga.tekizz.domain.Tag;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.entity.CategoryJpaEntity;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.entity.TagJpaEntity;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository.CategoryRepository;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository.TagRepository;
 import com.brandonkamga.tekizz.dto.importData.QuestionImportResponse;
-import com.brandonkamga.tekizz.repository.CategoryRepository;
-import com.brandonkamga.tekizz.repository.GameRepository;
-import com.brandonkamga.tekizz.repository.GameStatusRepository;
-import com.brandonkamga.tekizz.repository.GameTypeRepository;
-import com.brandonkamga.tekizz.repository.ProviderRepository;
-import com.brandonkamga.tekizz.repository.QuestionLevelRepository;
-import com.brandonkamga.tekizz.repository.QuestionRepository;
-import com.brandonkamga.tekizz.repository.QuestionStatusRepository;
-import com.brandonkamga.tekizz.repository.RoleRepository;
-import com.brandonkamga.tekizz.repository.TagRepository;
-import com.brandonkamga.tekizz.repository.UserRepository;
-import com.brandonkamga.tekizz.service.interfaces.QuestionImportService;
+import com.brandonkamga.tekizz.gaming.qcm.application.service.QcmQuestionImportApplicationService;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.GameStatusType;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.GameTypeName;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionLevelType;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionStatusType;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.Game;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.GameStatus;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.GameType;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.QuestionLevel;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.QuestionStatus;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.GameRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.GameStatusRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.GameTypeRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionLevelRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionStatusRepository;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.RoleType;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Provider;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.ProviderRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.RoleRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
@@ -46,7 +46,7 @@ import java.util.List;
  * Data Initializer for seeding the database with initial data.
  * Seeds enumeration entities, categories, tags, and imports questions from JSON files.
  * Only runs when the database is empty.
- * 
+ *
  * Questions are imported from JSON files in src/main/resources/data/questions/
  * - You can add as many JSON files as you want
  * - Each file should follow the QuestionImportRequest structure
@@ -66,9 +66,9 @@ public class DataInitializer implements CommandLineRunner {
     private final TagRepository tagRepository;
     private final GameRepository gameRepository;
     private final QuestionRepository questionRepository;
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final QuestionImportService questionImportService;
+    private final QcmQuestionImportApplicationService questionImportService;
 
     public DataInitializer(
             RoleRepository roleRepository,
@@ -81,9 +81,9 @@ public class DataInitializer implements CommandLineRunner {
             TagRepository tagRepository,
             GameRepository gameRepository,
             QuestionRepository questionRepository,
-            UserRepository userRepository,
+            UserJpaRepository userRepository,
             PasswordEncoder passwordEncoder,
-            QuestionImportService questionImportService) {
+            QcmQuestionImportApplicationService questionImportService) {
         this.roleRepository = roleRepository;
         this.providerRepository = providerRepository;
         this.gameStatusRepository = gameStatusRepository;
@@ -114,10 +114,10 @@ public class DataInitializer implements CommandLineRunner {
         initCategories();
         initTags();
         initGames();
-        
+
         // Import questions from JSON files
         importQuestionsFromJsonFiles();
-        
+
         // Initialize default admin user
         initAdminUser();
     }
@@ -223,28 +223,28 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initCategories() {
         if (categoryRepository.count() == 0) {
-            List<Category> categories = Arrays.asList(
-                    Category.builder()
+            List<CategoryJpaEntity> categories = Arrays.asList(
+                    CategoryJpaEntity.builder()
                             .name("Frontend")
                             .description("Questions sur le développement frontend: HTML, CSS, JavaScript, frameworks et bibliothèques UI")
                             .isActive(true)
                             .build(),
-                    Category.builder()
+                    CategoryJpaEntity.builder()
                             .name("Backend")
                             .description("Questions sur le développement backend: serveurs, APIs, bases de données, architectures")
                             .isActive(true)
                             .build(),
-                    Category.builder()
+                    CategoryJpaEntity.builder()
                             .name("Devops")
                             .description("Questions sur DevOps: CI/CD, conteneurisation, cloud, infrastructure as code")
                             .isActive(true)
                             .build(),
-                    Category.builder()
+                    CategoryJpaEntity.builder()
                             .name("Securite")
                             .description("Questions sur la sécurité informatique: vulnérabilités, bonnes pratiques, cryptographie")
                             .isActive(true)
                             .build(),
-                    Category.builder()
+                    CategoryJpaEntity.builder()
                             .name("Data Science")
                             .description("Questions sur la science des données: machine learning, analyse de données, statistiques")
                             .isActive(true)
@@ -257,86 +257,86 @@ public class DataInitializer implements CommandLineRunner {
     private void initTags() {
         if (tagRepository.count() == 0) {
             // Get categories
-            List<Category> categories = categoryRepository.findAll();
-            Category frontend = findCategoryByName(categories, "Frontend");
-            Category backend = findCategoryByName(categories, "Backend");
-            Category devops = findCategoryByName(categories, "Devops");
-            Category securite = findCategoryByName(categories, "Securite");
-            Category dataScience = findCategoryByName(categories, "Data Science");
+            List<CategoryJpaEntity> categories = categoryRepository.findAll();
+            CategoryJpaEntity frontend = findCategoryByName(categories, "Frontend");
+            CategoryJpaEntity backend = findCategoryByName(categories, "Backend");
+            CategoryJpaEntity devops = findCategoryByName(categories, "Devops");
+            CategoryJpaEntity securite = findCategoryByName(categories, "Securite");
+            CategoryJpaEntity dataScience = findCategoryByName(categories, "Data Science");
 
-            List<Tag> tags = new ArrayList<>();
+            List<TagJpaEntity> tags = new ArrayList<>();
 
             // ==================== Frontend Tags ====================
-            tags.add(Tag.builder().name("React").description("Bibliothèque JavaScript pour construire des interfaces utilisateur").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Vue.js").description("Framework JavaScript progressif pour construire des interfaces utilisateur").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Angular").description("Framework TypeScript pour construire des applications web").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("HTML/CSS").description("Langages de balisage et de style pour le web").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("JavaScript").description("Langage de programmation pour le web").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("TypeScript").description("Sur-ensemble typé de JavaScript").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Tailwind CSS").description("Framework CSS utilitaire").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Next.js").description("Framework React pour la production").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Svelte").description("Framework JavaScript compilé").isActive(true).category(frontend).build());
-            tags.add(Tag.builder().name("Nuxt.js").description("Framework Vue.js pour la production").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("React").description("Bibliothèque JavaScript pour construire des interfaces utilisateur").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Vue.js").description("Framework JavaScript progressif pour construire des interfaces utilisateur").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Angular").description("Framework TypeScript pour construire des applications web").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("HTML/CSS").description("Langages de balisage et de style pour le web").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("JavaScript").description("Langage de programmation pour le web").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("TypeScript").description("Sur-ensemble typé de JavaScript").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Tailwind CSS").description("Framework CSS utilitaire").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Next.js").description("Framework React pour la production").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Svelte").description("Framework JavaScript compilé").isActive(true).category(frontend).build());
+            tags.add(TagJpaEntity.builder().name("Nuxt.js").description("Framework Vue.js pour la production").isActive(true).category(frontend).build());
 
             // ==================== Backend Tags ====================
-            tags.add(Tag.builder().name("Spring Boot").description("Framework Java pour construire des applications backend").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("Node.js").description("Environnement d'exécution JavaScript côté serveur").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("Django").description("Framework Python pour le développement web").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("Express.js").description("Framework web minimaliste pour Node.js").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("PostgreSQL").description("Système de gestion de base de données relationnelle").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("MongoDB").description("Base de données NoSQL orientée documents").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("MySQL").description("Système de gestion de base de données relationnelle").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("Redis").description("Base de données en mémoire, utilisée comme cache").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("GraphQL").description("Langage de requête pour les APIs").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("REST API").description("Architecture pour les services web").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("FastAPI").description("Framework Python moderne pour les APIs").isActive(true).category(backend).build());
-            tags.add(Tag.builder().name("NestJS").description("Framework Node.js pour construire des applications côté serveur").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("Spring Boot").description("Framework Java pour construire des applications backend").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("Node.js").description("Environnement d'exécution JavaScript côté serveur").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("Django").description("Framework Python pour le développement web").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("Express.js").description("Framework web minimaliste pour Node.js").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("PostgreSQL").description("Système de gestion de base de données relationnelle").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("MongoDB").description("Base de données NoSQL orientée documents").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("MySQL").description("Système de gestion de base de données relationnelle").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("Redis").description("Base de données en mémoire, utilisée comme cache").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("GraphQL").description("Langage de requête pour les APIs").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("REST API").description("Architecture pour les services web").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("FastAPI").description("Framework Python moderne pour les APIs").isActive(true).category(backend).build());
+            tags.add(TagJpaEntity.builder().name("NestJS").description("Framework Node.js pour construire des applications côté serveur").isActive(true).category(backend).build());
 
             // ==================== Devops Tags ====================
-            tags.add(Tag.builder().name("Docker").description("Plateforme de conteneurisation").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Kubernetes").description("Système d'orchestration de conteneurs").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("CI/CD").description("Intégration continue et déploiement continu").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Jenkins").description("Serveur d'automatisation open source").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("GitHub Actions").description("Automatisation des workflows GitHub").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("GitLab CI").description("Système CI/CD intégré à GitLab").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("AWS").description("Amazon Web Services - plateforme cloud").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Azure").description("Plateforme cloud Microsoft").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("GCP").description("Google Cloud Platform").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Terraform").description("Outil d'infrastructure as code").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Ansible").description("Outil d'automatisation IT").isActive(true).category(devops).build());
-            tags.add(Tag.builder().name("Linux").description("Système d'exploitation open source").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Docker").description("Plateforme de conteneurisation").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Kubernetes").description("Système d'orchestration de conteneurs").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("CI/CD").description("Intégration continue et déploiement continu").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Jenkins").description("Serveur d'automatisation open source").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("GitHub Actions").description("Automatisation des workflows GitHub").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("GitLab CI").description("Système CI/CD intégré à GitLab").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("AWS").description("Amazon Web Services - plateforme cloud").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Azure").description("Plateforme cloud Microsoft").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("GCP").description("Google Cloud Platform").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Terraform").description("Outil d'infrastructure as code").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Ansible").description("Outil d'automatisation IT").isActive(true).category(devops).build());
+            tags.add(TagJpaEntity.builder().name("Linux").description("Système d'exploitation open source").isActive(true).category(devops).build());
 
             // ==================== Securite Tags ====================
-            tags.add(Tag.builder().name("OWASP").description("Open Web Application Security Project").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("Cryptographie").description("Science du chiffrement et déchiffrement").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("Authentification").description("Mécanismes d'authentification et autorisation").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("Pentest").description("Tests d'intrusion et audits de sécurité").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("XSS").description("Cross-Site Scripting - vulnérabilité web").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("SQL Injection").description("Injection SQL - vulnérabilité de base de données").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("JWT").description("JSON Web Tokens pour l'authentification").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("OAuth2").description("Protocole d'autorisation").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("HTTPS/TLS").description("Protocoles de sécurité réseau").isActive(true).category(securite).build());
-            tags.add(Tag.builder().name("RGPD").description("Règlement Général sur la Protection des Données").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("OWASP").description("Open Web Application Security Project").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("Cryptographie").description("Science du chiffrement et déchiffrement").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("Authentification").description("Mécanismes d'authentification et autorisation").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("Pentest").description("Tests d'intrusion et audits de sécurité").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("XSS").description("Cross-Site Scripting - vulnérabilité web").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("SQL Injection").description("Injection SQL - vulnérabilité de base de données").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("JWT").description("JSON Web Tokens pour l'authentification").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("OAuth2").description("Protocole d'autorisation").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("HTTPS/TLS").description("Protocoles de sécurité réseau").isActive(true).category(securite).build());
+            tags.add(TagJpaEntity.builder().name("RGPD").description("Règlement Général sur la Protection des Données").isActive(true).category(securite).build());
 
             // ==================== Data Science Tags ====================
-            tags.add(Tag.builder().name("Python").description("Langage de programmation pour la data science").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Machine Learning").description("Algorithmes d'apprentissage automatique").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Deep Learning").description("Réseaux de neurones profonds").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Pandas").description("Bibliothèque Python pour la manipulation de données").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("NumPy").description("Bibliothèque Python pour le calcul numérique").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("TensorFlow").description("Framework Google pour le deep learning").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("PyTorch").description("Framework Facebook pour le deep learning").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Scikit-learn").description("Bibliothèque Python pour le machine learning").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Data Visualization").description("Visualisation de données avec Matplotlib, Seaborn").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("NLP").description("Traitement du langage naturel").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Statistics").description("Statistiques et probabilités").isActive(true).category(dataScience).build());
-            tags.add(Tag.builder().name("Big Data").description("Traitement de grandes quantités de données").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Python").description("Langage de programmation pour la data science").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Machine Learning").description("Algorithmes d'apprentissage automatique").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Deep Learning").description("Réseaux de neurones profonds").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Pandas").description("Bibliothèque Python pour la manipulation de données").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("NumPy").description("Bibliothèque Python pour le calcul numérique").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("TensorFlow").description("Framework Google pour le deep learning").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("PyTorch").description("Framework Facebook pour le deep learning").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Scikit-learn").description("Bibliothèque Python pour le machine learning").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Data Visualization").description("Visualisation de données avec Matplotlib, Seaborn").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("NLP").description("Traitement du langage naturel").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Statistics").description("Statistiques et probabilités").isActive(true).category(dataScience).build());
+            tags.add(TagJpaEntity.builder().name("Big Data").description("Traitement de grandes quantités de données").isActive(true).category(dataScience).build());
 
             tagRepository.saveAll(tags);
         }
     }
 
-    private Category findCategoryByName(List<Category> categories, String name) {
+    private CategoryJpaEntity findCategoryByName(List<CategoryJpaEntity> categories, String name) {
         return categories.stream()
                 .filter(c -> c.getName().equals(name))
                 .findFirst()
@@ -380,7 +380,7 @@ public class DataInitializer implements CommandLineRunner {
         // Only import if no questions exist
         long questionCount = questionRepository.count();
         System.out.println("[DEBUG] Current question count: " + questionCount);
-        
+
         if (questionCount > 0) {
             System.out.println("Questions already exist in database. Skipping JSON import.");
             return;
@@ -394,7 +394,7 @@ public class DataInitializer implements CommandLineRunner {
             // Use PathMatchingResourcePatternResolver to find all JSON files in the questions directory
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource[] resources = resolver.getResources("classpath:data/questions/*.json");
-            
+
             System.out.println("[DEBUG] Found " + resources.length + " JSON files to import");
 
             int totalImported = 0;
@@ -407,22 +407,22 @@ public class DataInitializer implements CommandLineRunner {
 
                 try {
                     System.out.println("\nImporting: " + filename);
-                    
+
                     // Use InputStream instead of getFile() for JAR compatibility
                     QuestionImportResponse response = questionImportService.importQuestionsFromInputStream(
                             resource.getInputStream(), filename);
-                    
+
                     totalImported += response.getImported();
                     totalSkipped += response.getSkipped();
                     importedFiles.add(filename + " (" + response.getImported() + " questions)");
-                    
+
                     System.out.println("  - Imported: " + response.getImported());
                     System.out.println("  - Skipped: " + response.getSkipped());
                     if (response.getCreatedTags() != null && !response.getCreatedTags().isEmpty()) {
                         System.out.println("  - Created tags: " + response.getCreatedTags());
                     }
                     if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-                        response.getErrors().forEach(e -> 
+                        response.getErrors().forEach(e ->
                             System.out.println("  - Error: " + e.getError()));
                     }
                 } catch (IOException e) {
@@ -439,7 +439,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Total skipped: " + totalSkipped);
             importedFiles.forEach(f -> System.out.println("  - " + f));
             System.out.println("=".repeat(60));
-            
+
             // Verify questions were actually saved
             System.out.println("[DEBUG] Final question count: " + questionRepository.count());
 
@@ -455,7 +455,7 @@ public class DataInitializer implements CommandLineRunner {
      * Initialize default admin user.
      * Email: admin@tekizz.com
      * Password: Admin@123456
-     * 
+     *
      * IMPORTANT: Change this password in production!
      */
     private void initAdminUser() {
@@ -464,12 +464,12 @@ public class DataInitializer implements CommandLineRunner {
             // Get ADMIN role and LOCAL provider
             Role adminRole = roleRepository.findByRoleName(RoleType.ADMIN)
                     .orElseThrow(() -> new RuntimeException("ADMIN role not found"));
-            
+
             Provider localProvider = providerRepository.findByProviderName(ProviderType.LOCAL)
                     .orElseThrow(() -> new RuntimeException("LOCAL provider not found"));
 
             // Create admin user
-            User adminUser = User.builder()
+            UserJpaEntity adminUser = UserJpaEntity.builder()
                     .username("admin")
                     .email("admin@tekizz.com")
                     .password(passwordEncoder.encode("Admin@123456"))
@@ -478,7 +478,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(adminUser);
-            
+
             System.out.println("=".repeat(60));
             System.out.println("DEFAULT ADMIN USER CREATED");
             System.out.println("Email: admin@tekizz.com");

@@ -1,12 +1,13 @@
 package com.brandonkamga.tekizz.catalog.infrastructure.persistence.mapper;
 
 import com.brandonkamga.tekizz.catalog.domain.model.Tag;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.entity.TagJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TagPersistenceMapper {
 
-    public Tag toDomain(com.brandonkamga.tekizz.domain.Tag entity) {
+    public Tag toDomain(TagJpaEntity entity) {
         if (entity == null) return null;
         Long catId = entity.getCategory() != null ? entity.getCategory().getId() : null;
         String catName = entity.getCategory() != null ? entity.getCategory().getName() : null;

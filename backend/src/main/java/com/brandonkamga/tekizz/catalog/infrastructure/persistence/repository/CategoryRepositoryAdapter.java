@@ -3,7 +3,6 @@ package com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository;
 import com.brandonkamga.tekizz.catalog.domain.model.Category;
 import com.brandonkamga.tekizz.catalog.domain.repository.CategoryRepositoryPort;
 import com.brandonkamga.tekizz.catalog.infrastructure.persistence.mapper.CategoryPersistenceMapper;
-import com.brandonkamga.tekizz.repository.CategoryRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

@@ -3,7 +3,6 @@ package com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository;
 import com.brandonkamga.tekizz.catalog.domain.model.Tag;
 import com.brandonkamga.tekizz.catalog.domain.repository.TagRepositoryPort;
 import com.brandonkamga.tekizz.catalog.infrastructure.persistence.mapper.TagPersistenceMapper;
-import com.brandonkamga.tekizz.repository.TagRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

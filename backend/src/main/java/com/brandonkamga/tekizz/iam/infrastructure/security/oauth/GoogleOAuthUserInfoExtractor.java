@@ -1,16 +1,15 @@
 package com.brandonkamga.tekizz.iam.infrastructure.security.oauth;
 
-import com.brandonkamga.tekizz.domain.Profile;
-import com.brandonkamga.tekizz.domain.Provider;
-import com.brandonkamga.tekizz.domain.ProviderType;
-import com.brandonkamga.tekizz.domain.Role;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.ProfileJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Provider;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 /**
  * Google OAuth2 user info extractor.
- * Moved from security.oauth to iam.infrastructure.security.oauth.
  */
 @Component
 public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
@@ -57,7 +56,7 @@ public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
     }
 
     @Override
-    public User buildUser(OAuth2User oauthUser, Role role, Provider provider) {
+    public UserJpaEntity buildUser(OAuth2User oauthUser, Role role, Provider provider) {
         String email = extractEmail(oauthUser);
         String providerUserId = extractProviderUserId(oauthUser);
         String givenName = oauthUser.getAttribute("given_name");
@@ -68,14 +67,15 @@ public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
             username = email.split("@")[0];
         }
 
-        User user = new User();
-        user.setEmail(email);
-        user.setUsername(username);
-        user.setProvider(provider);
-        user.setProviderUserId(providerUserId);
-        user.setRole(role);
+        UserJpaEntity user = UserJpaEntity.builder()
+                .email(email)
+                .username(username)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .role(role)
+                .build();
 
-        Profile profile = Profile.builder()
+        ProfileJpaEntity profile = ProfileJpaEntity.builder()
                 .user(user)
                 .firstName(givenName)
                 .lastName(familyName)

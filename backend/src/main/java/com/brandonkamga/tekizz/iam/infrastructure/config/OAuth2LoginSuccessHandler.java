@@ -2,15 +2,16 @@ package com.brandonkamga.tekizz.iam.infrastructure.config;
 
 import com.brandonkamga.tekizz.iam.infrastructure.security.jwt.JwtService;
 import com.brandonkamga.tekizz.iam.infrastructure.security.oauth.OAuthUserInfoExtractorFactory;
-import com.brandonkamga.tekizz.domain.Provider;
-import com.brandonkamga.tekizz.domain.ProviderType;
-import com.brandonkamga.tekizz.domain.Role;
-import com.brandonkamga.tekizz.domain.RoleType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.RoleType;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Provider;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.ProfileJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.ProviderRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.RoleRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import com.brandonkamga.tekizz.iam.infrastructure.security.oauth.OAuthUserInfoExtractor;
-import com.brandonkamga.tekizz.repository.ProviderRepository;
-import com.brandonkamga.tekizz.repository.RoleRepository;
-import com.brandonkamga.tekizz.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,13 +23,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * Handles successful OAuth2 authentication.
- * Moved from config.OAuth2LoginSuccessHandler.
- * Uses UserRepository directly (legacy) until gaming context is migrated.
+ * Uses UserJpaRepository and IAM persistence entities.
  */
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private final RoleRepository roleRepository;
     private final ProviderRepository providerRepository;
     private final OAuthUserInfoExtractorFactory extractorFactory;
@@ -36,7 +36,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final String frontendUrl;
 
     public OAuth2LoginSuccessHandler(
-            UserRepository userRepository,
+            UserJpaRepository userRepository,
             RoleRepository roleRepository,
             ProviderRepository providerRepository,
             OAuthUserInfoExtractorFactory extractorFactory,
@@ -88,20 +88,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .orElseGet(() -> {
                     Role userRole = roleRepository.findByRoleName(RoleType.USER)
                             .orElseThrow(() -> new RuntimeException("USER ROLE not found"));
-                    User newUser = extractor.buildUser(oauthUser, userRole, providerEntity);
+                    UserJpaEntity newUser = extractor.buildUser(oauthUser, userRole, providerEntity);
                     return userRepository.save(newUser);
                 });
     }
 
-    private void updateOAuthUserFromProvider(User existingUser, OAuth2User oauthUser,
+    private void updateOAuthUserFromProvider(UserJpaEntity existingUser, OAuth2User oauthUser,
                                              OAuthUserInfoExtractor extractor) {
         String firstName = extractor.extractFirstName(oauthUser);
         String lastName = extractor.extractLastName(oauthUser);
         String username = extractor.extractUsername(oauthUser);
 
-        com.brandonkamga.tekizz.domain.Profile profile = existingUser.getProfile();
+        ProfileJpaEntity profile = existingUser.getProfile();
         if (profile == null) {
-            profile = com.brandonkamga.tekizz.domain.Profile.builder()
+            profile = ProfileJpaEntity.builder()
                     .user(existingUser)
                     .build();
             existingUser.setProfile(profile);

@@ -1,81 +1,142 @@
-# 🚀 Tekizz Backend
+# Tekizz — Backend
 
-Plateforme de formation tech - API REST avec Spring Boot.
+API REST Spring Boot structurée en **architecture DDD hexagonale** (Ports & Adapters).
 
-## 🛠️ Stack Technologique
+---
 
-| Technologie | Version | Usage |
-|-------------|---------|-------|
-| Spring Boot | 4.0.2 | Framework principal |
-| Java | 21 | Langage |
-| PostgreSQL | Latest | Base de données |
-| JPA/Hibernate | Latest | ORM |
-| JWT (JJWT) | 0.12.3 | Authentification |
-| Spring Security OAuth2 | Latest | OAuth2 (Google, GitHub) |
-| Lombok | Latest | Réduction boilerplate |
+## Stack
 
-## 📦 Installation
+| Technologie | Version |
+|-------------|---------|
+| Spring Boot | 4.0.2 |
+| Java | 21 |
+| PostgreSQL | 16 |
+| JJWT | 0.12.3 |
+| Spring Security OAuth2 | — |
+| Lombok | — |
 
-```bash
-# Compiler le projet
-./mvnw clean package
+---
 
-# Démarrer l'application
-./mvnw spring-boot:run
+## Architecture
 
-# Exécuter les tests
-./mvnw test
+Le backend est un **monolithe modulaire** organisé en 6 bounded contexts. Chaque contexte suit la structure hexagonale stricte :
+
+```
+<context>/
+├── domain/
+│   ├── model/        # Agrégats, entités, value objects (pur Java, zéro JPA)
+│   ├── event/        # Domain Events
+│   ├── repository/   # Ports secondaires (interfaces)
+│   └── service/      # Domain Services
+├── application/
+│   ├── port/in/      # Use Cases (interfaces entrantes)
+│   └── service/      # Application Services (implémentent les use cases)
+└── infrastructure/
+    ├── persistence/
+    │   ├── entity/      # @Entity JPA (séparés du domaine)
+    │   ├── repository/  # Spring Data JPA + Adapters
+    │   └── mapper/      # JPA Entity ↔ Domain Model
+    └── web/
+        └── controller/  # @RestController (adapters HTTP fins)
 ```
 
-## 🔐 Authentification
+### Les 6 contextes
 
-### Authentification Providers Supportés
+| Contexte | Rôle |
+|----------|------|
+| `shared/` | Shared Kernel : `AggregateRoot`, `DomainEvent`, `DomainEventPublisher` |
+| `iam/` | Identité & Accès : User, Auth JWT, OAuth2 Google/GitHub |
+| `catalog/` | Catalogue : Category, Tag |
+| `gaming/qcm/` | Core Domain — jeu QCM : sessions, questions, scoring, leaderboard |
+| `gaming/smatch/` | Core Domain — Speed Matching : decks, paires, sessions |
+| `contribution/` | Contributions communautaires (soumission → review → publication) |
+| `admin/` | Contexte support : orchestre les autres via leurs use cases |
 
-| Provider | Type | Statut |
-|----------|------|--------|
-| Local | Email/Password | ✅ |
-| Google | OAuth2 | ✅ |
-| GitHub | OAuth2 | ✅ |
+---
 
-### Endpoints Auth
+## API — Endpoints principaux
 
+### Auth (`/api/v1/auth`)
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| POST | `/auth/register` | Inscription |
-| POST | `/auth/login` | Connexion |
-| POST | `/auth/logout` | Déconnexion |
+| POST | `/register` | Inscription email/password |
+| POST | `/login` | Connexion → JWT |
+| GET | `/oauth2/google` | OAuth2 Google |
+| GET | `/oauth2/github` | OAuth2 GitHub |
 
+### QCM (`/api/v1/qcm`)
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/sessions/start` | Démarrer une session |
+| GET | `/sessions/{id}/question` | Question suivante |
+| POST | `/sessions/{id}/answer` | Soumettre une réponse |
+| GET | `/sessions/{id}/result` | Résultat final |
+| GET | `/leaderboard` | Classement global |
+| GET | `/stats` | Stats personnelles |
 
-## 👥 Gestion Utilisateurs
+### Smatch (`/api/v1/smatch`)
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/decks` | Lister les decks actifs |
+| POST | `/sessions/start` | Démarrer une session |
+| POST | `/sessions/{id}/attempt` | Soumettre une tentative |
+| GET | `/sessions/{id}/result` | Résultat final |
 
-### Endpoints Users
+### Contribution (`/api/v1/contribution/questions`)
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/` | Soumettre une question |
+| GET | `/mine` | Mes contributions |
+| DELETE | `/{id}` | Retirer une contribution |
 
-| Méthode | Endpoint | Rôle Requis | Description |
-|---------|----------|-------------|-------------|
-| GET | `/api/users` | ADMIN | Lister tous |
-| GET | `/api/users/{id}` | USER/ADMIN | Par ID |
-| GET | `/api/users/email/{email}` | USER/ADMIN | Par email |
-| PUT | `/api/users/{id}` | OWNER | Modifier |
-| DELETE | `/api/users/{id}` | OWNER/ADMIN | Supprimer |
+### Admin (`/api/v1/admin/*`) — rôle ADMIN requis
+- `GET/POST/PUT/DELETE /admin/qcm/categories` — gestion catégories
+- `GET/POST/PUT/DELETE /admin/qcm/questions` — gestion questions
+- `GET/POST/PUT/DELETE /admin/smatch/decks` — gestion decks Smatch
+- `GET/PUT/DELETE /admin/platform/users` — gestion utilisateurs
+- `GET /admin/platform/stats` — statistiques globales
+- `GET/PUT /admin/contributions` — review des contributions
 
+---
 
-## 🔒 Sécurité
+## Lancer le projet
 
-- **JWT** : Expiration configurable (défaut: 24h)
-- **Password** : BCrypt hashing
-- **Validation** : Jakarta Validation
-- **Rôles** : USER, ADMIN
+```bash
+# Copier et renseigner les variables d'environnement
+cp .env.example .env
 
+# Démarrer (dev)
+./mvnw spring-boot:run
 
-## 📝 Variables d'Environnement
+# Tests
+./mvnw test
+
+# Build production (JAR)
+./mvnw clean package -DskipTests
+```
+
+### Variables d'environnement requises
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | URL PostgreSQL |
-| `GOOGLE_CLIENT_ID` | Google OAuth2 |
-| `GITHUB_CLIENT_ID` | GitHub OAuth2 |
-| `APP_JWT_SECRET` | Clé secrète JWT |
-| `APP_JWT_EXPIRATION` | Expiration JWT (ms) |
+| `DB_URL` | JDBC URL PostgreSQL |
+| `DB_USERNAME` / `DB_PASSWORD` | Identifiants base de données |
+| `APP_JWT_SECRET` | Clé secrète JWT (min 256 bits) |
+| `APP_JWT_EXPIRATION` | Durée JWT en ms (ex: `86400000`) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth2 Google |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | OAuth2 GitHub |
+
+---
+
+## Docker
+
+```bash
+# Build image
+docker build -t brandoniscoding/backend-tekizz:latest .
+
+# Démarrage production (avec docker-compose.prod.yml à la racine)
+docker compose -f ../docker-compose.prod.yml up -d backend
+```
 
 ---
 

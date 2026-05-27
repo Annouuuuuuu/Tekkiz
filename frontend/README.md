@@ -1,18 +1,84 @@
-# React + Vite
+# Tekizz — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA React pour la plateforme de formation tech gamifiée Tekizz.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Stack
 
-## React Compiler
+| Technologie | Version |
+|-------------|---------|
+| React | 19 |
+| Vite | 7 |
+| Tailwind CSS | 4 |
+| React Router | 7 |
+| Framer Motion | 12 |
+| Radix UI | — |
+| Recharts | 3 |
+| Lucide React | — |
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
+## Structure
 
-## Expanding the ESLint configuration
+```
+src/
+├── pages/
+│   ├── dashboard/       # Play, QcmGame*, SmatchGame*, Performance, Leaderboard, Contribute, Settings
+│   ├── admin/
+│   │   ├── qcm/         # Categories, Questions, Tags, Sessions, Config, Contributions
+│   │   └── smatch/      # Decks, DeckEditor, Sessions, Config
+│   ├── Home.jsx
+│   ├── Login.jsx / Signup.jsx
+│   └── OAuthCallback.jsx
+├── components/
+│   ├── ui/              # Composants Radix UI (Button, Card, Select, Tabs…)
+│   ├── layout/          # Navbar, Sidebar, Footer
+│   ├── dashboard/       # Composants Play et Performance
+│   ├── admin/           # Composants admin réutilisables
+│   └── auth/            # Guards et formulaires
+├── contexts/            # AuthContext, ThemeContext
+├── services/
+│   ├── api/             # apiClient.js, endpoints.js, errorHandler.js
+│   ├── auth.service.js
+│   ├── qcmGame.service.js
+│   ├── contribution.service.js
+│   └── admin.service.js
+├── layouts/             # DashboardLayout, AdminLayout
+└── lib/                 # Utilitaires (cn, …)
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Lancer le projet
+
+```bash
+pnpm install
+pnpm dev          # http://localhost:5173
+pnpm build        # Build production dans dist/
+pnpm preview      # Prévisualiser le build
+```
+
+Créer un `.env` à la racine du dossier `frontend/` :
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+En production cette variable pointe vers `https://api.tekizz.lescracks.com`.
+
+---
+
+## Docker
+
+L'image de production utilise un build multi-stage : Vite build → Nginx.
+
+```bash
+docker build -t brandoniscoding/frontend-tekizz:latest .
+```
+
+La configuration Nginx (`nginx.conf`) gère le routing SPA (fallback sur `index.html`) et le proxy `/api` vers le backend.
+
+---
+
+Développé par **Brandon Kamga**
