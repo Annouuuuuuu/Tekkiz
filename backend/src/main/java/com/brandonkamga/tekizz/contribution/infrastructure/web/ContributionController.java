@@ -5,7 +5,7 @@ import com.brandonkamga.tekizz.dto.ApiResponse;
 import com.brandonkamga.tekizz.dto.contribution.ContributionQuestionRequest;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
 import com.brandonkamga.tekizz.repository.*;
-import com.brandonkamga.tekizz.service.interfaces.UserService;
+import com.brandonkamga.tekizz.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ public class ContributionController {
     private final GameRepository gameRepository;
     private final QuestionLevelRepository questionLevelRepository;
     private final QuestionStatusRepository questionStatusRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     public ContributionController(QuestionRepository questionRepository,
                                   AnswerRepository answerRepository,
@@ -37,7 +37,7 @@ public class ContributionController {
                                   GameRepository gameRepository,
                                   QuestionLevelRepository questionLevelRepository,
                                   QuestionStatusRepository questionStatusRepository,
-                                  UserService userService) {
+                                  UserRepository userRepository) {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.categoryRepository = categoryRepository;
@@ -45,7 +45,7 @@ public class ContributionController {
         this.gameRepository = gameRepository;
         this.questionLevelRepository = questionLevelRepository;
         this.questionStatusRepository = questionStatusRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/questions")
@@ -127,7 +127,7 @@ public class ContributionController {
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private User getUser(UserDetails userDetails) {
-        return userService.findByEmail(userDetails.getUsername());
+        return userRepository.findByEmail(userDetails.getUsername()).orElse(null);
     }
 
     private Question buildQuestion(ContributionQuestionRequest req, User submittedBy) {
