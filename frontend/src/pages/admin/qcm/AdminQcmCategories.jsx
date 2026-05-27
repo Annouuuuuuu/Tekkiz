@@ -52,7 +52,7 @@ export default function AdminQcmCategories() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setError("Name is required"); return; }
+    if (!form.name.trim()) { setError("Le nom est obligatoire"); return; }
     setSaving(true);
     setError("");
     try {
@@ -64,7 +64,7 @@ export default function AdminQcmCategories() {
       setModal(null);
       load();
     } catch (e) {
-      setError(e?.response?.data?.message ?? "An error occurred");
+      setError(e?.response?.data?.message ?? "Une erreur est survenue");
     }
     setSaving(false);
   };
@@ -74,7 +74,7 @@ export default function AdminQcmCategories() {
       await adminService.deleteQcmCategory(id);
       setCategories(prev => prev.filter(c => c.id !== id));
     } catch (e) {
-      alert(e?.response?.data?.message ?? "Cannot delete category");
+      alert(e?.response?.data?.message ?? "Impossible de supprimer la catégorie");
     }
     setConfirmDelete(null);
   };

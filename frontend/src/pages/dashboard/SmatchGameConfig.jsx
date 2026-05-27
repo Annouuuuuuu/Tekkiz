@@ -7,35 +7,35 @@ const MODES = [
   {
     key: "TIME_ATTACK",
     label: "Time Attack",
-    sub: "90 seconds",
+    sub: "90 secondes",
     icon: Timer,
     color: "text-orange-400",
     border: "border-orange-500/30",
     bg: "bg-orange-500/8",
     glow: "bg-orange-500/10",
-    desc: "Sprint through pairs under a hard countdown. Every second matters.",
+    desc: "Associez un maximum de paires avant la fin du chrono. Chaque seconde compte.",
   },
   {
     key: "ZEN",
     label: "Zen",
-    sub: "No timer",
+    sub: "Sans chrono",
     icon: Infinity,
     color: "text-yellow-400",
     border: "border-yellow-500/30",
     bg: "bg-yellow-500/8",
     glow: "bg-yellow-500/10",
-    desc: "Take your time. No pressure, just matching. Perfect for studying.",
+    desc: "Prenez votre temps. Sans pression, associez à votre rythme. Idéal pour réviser.",
   },
   {
     key: "SURVIVAL",
     label: "Survival",
-    sub: "120 seconds",
+    sub: "120 secondes",
     icon: Heart,
     color: "text-red-400",
     border: "border-red-500/30",
     bg: "bg-red-500/8",
     glow: "bg-red-500/10",
-    desc: "Longer clock but every wrong match costs a life. High stakes.",
+    desc: "Plus de temps mais chaque mauvaise association vous coûte une vie. Chaque erreur est pénalisante.",
   },
 ];
 
@@ -55,7 +55,7 @@ export default function SmatchGameConfig() {
           <button onClick={() => navigate("/dashboard/play")}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            Retour
           </button>
         </div>
 
@@ -65,12 +65,12 @@ export default function SmatchGameConfig() {
           </div>
           <div>
             <h1 className="text-3xl font-black leading-none">Smatch</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Speed matching</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Association rapide</p>
           </div>
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Select mode</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Choisir un mode</p>
           <div className="space-y-3">
             {MODES.map((mode, i) => {
               const Icon = mode.icon;

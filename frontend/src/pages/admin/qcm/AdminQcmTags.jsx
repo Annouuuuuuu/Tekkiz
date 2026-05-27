@@ -53,7 +53,7 @@ export default function AdminQcmTags() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setError("Name is required"); return; }
+    if (!form.name.trim()) { setError("Le nom est obligatoire"); return; }
     setSaving(true); setError("");
     try {
       const payload = { ...form, categoryId: form.categoryId ? Number(form.categoryId) : null };
@@ -62,7 +62,7 @@ export default function AdminQcmTags() {
       setModal(null);
       load();
     } catch (e) {
-      setError(e?.response?.data?.message ?? "An error occurred");
+      setError(e?.response?.data?.message ?? "Une erreur est survenue");
     }
     setSaving(false);
   };
@@ -72,7 +72,7 @@ export default function AdminQcmTags() {
       await adminService.deleteQcmTag(id);
       setTags(prev => prev.filter(t => t.id !== id));
     } catch (e) {
-      alert(e?.response?.data?.message ?? "Cannot delete tag");
+      alert(e?.response?.data?.message ?? "Impossible de supprimer le tag");
     }
     setConfirmDelete(null);
   };
