@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   ArrowRight, Shuffle, HelpCircle, Heart, Trophy,
-  Clock, ChevronDown, PenLine, Code2, HandHeart,
+  Clock, ChevronDown, PenLine, Code2, HandHeart, Star, Github,
 } from "lucide-react";
 import AuthModal from "@/components/auth/AuthModal";
 
@@ -35,12 +35,8 @@ const FAQ_ITEMS = [
     a: "Oui. Créer un compte suffit. Aucune limitation sur le nombre de parties. Le classement global et les statistiques détaillées sont accessibles à tous.",
   },
   {
-    q: "Quelles catégories de questions ?",
-    a: "Algorithmique, structures de données, réseaux, sécurité, DevOps, OS, bases de données, culture tech. Le contenu évolue régulièrement — et tu peux contribuer en soumettant tes propres questions.",
-  },
-  {
-    q: "Comment fonctionne le classement ?",
-    a: "Basé sur ton score moyen sur toutes tes parties. Mis à jour en temps réel après chaque session. Les classements QCM et Smatch sont indépendants.",
+    q: "Comment contribuer à l'évolution de la plateforme ?",
+    a: "Tekizz est open source. Tu peux contribuer en soumettant des questions via la page Contribuer (QCM ou Smatch), en signalant des bugs ou en proposant des fonctionnalités sur GitHub, ou en soutenant financièrement le projet. Chaque contribution, petite ou grande, aide la plateforme à grandir.",
   },
 ];
 
@@ -250,9 +246,17 @@ const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
 export default function Home() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("signup");
+  const [stars, setStars] = useState(null);
   const heroRef = useRef(null);
 
   const open = (mode) => { setAuthMode(mode); setAuthOpen(true); };
+
+  useEffect(() => {
+    fetch("https://api.github.com/repos/LesCracks-OS/Tekizz")
+      .then(r => r.json())
+      .then(d => { if (d.stargazers_count !== undefined) setStars(d.stargazers_count); })
+      .catch(() => {});
+  }, []);
 
   // Cursor-tracking spotlight — CSS vars only, zero re-renders
   useEffect(() => {
@@ -358,6 +362,28 @@ export default function Home() {
               >
                 Connexion
               </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1, duration: 0.5 }}
+              className="mt-4"
+            >
+              <a
+                href="https://github.com/LesCracks-OS/Tekizz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.15] transition-all group"
+              >
+                <Github className="h-3.5 w-3.5 text-white/40 group-hover:text-white/70 transition-colors" />
+                <span className="text-[11px] font-mono text-white/30 group-hover:text-white/60 transition-colors tracking-wide">Open Source</span>
+                <span className="h-3 w-px bg-white/[0.08]" />
+                <Star className="h-3 w-3 text-yellow-400/60 group-hover:text-yellow-400 transition-colors" />
+                <span className="text-[11px] font-black tabular-nums text-white/40 group-hover:text-white/70 transition-colors">
+                  {stars !== null ? stars.toLocaleString("fr-FR") : "—"}
+                </span>
+              </a>
             </motion.div>
 
             <motion.div

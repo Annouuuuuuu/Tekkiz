@@ -36,8 +36,14 @@ const STATUS_LABELS = {
 // CONTENU — Formulaire pas-à-pas
 // ─────────────────────────────────────────────────────────────────────────────
 
+const GAMES = [
+  { key: 'QCM',    label: 'QCM',    desc: 'Questions à choix multiples' },
+  { key: 'SMATCH', label: 'Smatch', desc: 'Association termes / définitions' },
+];
+
 function SubmitForm({ categories }) {
   const [step, setStep] = useState(1);
+  const [game, setGame] = useState(null);
   const [category, setCategory] = useState(null);
   const [level, setLevel] = useState(null);
   const [content, setContent] = useState('');
@@ -54,7 +60,7 @@ function SubmitForm({ categories }) {
   const [error, setError] = useState('');
 
   const reset = () => {
-    setStep(1); setCategory(null); setLevel(null);
+    setStep(1); setGame(null); setCategory(null); setLevel(null);
     setContent(''); setHint(''); setExplanation('');
     setAnswers([
       { content: '', isCorrect: true  },
@@ -72,9 +78,10 @@ function SubmitForm({ categories }) {
     setAnswers(prev => prev.map((a, idx) => ({ ...a, isCorrect: idx === i })));
 
   const canProceed = () => {
-    if (step === 1) return category && level;
-    if (step === 2) return content.trim().length >= 10;
-    if (step === 3) return answers.every(a => a.content.trim()) && answers.some(a => a.isCorrect);
+    if (step === 1) return game !== null;
+    if (step === 2) return category && level;
+    if (step === 3) return content.trim().length >= 10;
+    if (step === 4) return answers.every(a => a.content.trim()) && answers.some(a => a.isCorrect);
     return true;
   };
 
@@ -87,6 +94,7 @@ function SubmitForm({ categories }) {
         explanation: explanation.trim() || undefined,
         categoryId: category.id,
         level: level.key,
+        gameType: game.key,
         answers,
       });
       setDone(true);
@@ -122,7 +130,7 @@ function SubmitForm({ categories }) {
     <div className="space-y-6 pb-28">
       {/* Progress */}
       <div className="flex gap-1.5">
-        {['Catégorie', 'Question', 'Réponses', 'Détails'].map((label, i) => {
+        {['Jeu', 'Catégorie', 'Question', 'Réponses', 'Détails'].map((label, i) => {
           const idx = i + 1;
           return (
             <div key={label} className={`flex-1 h-1 rounded-full transition-colors ${
@@ -134,7 +142,25 @@ function SubmitForm({ categories }) {
 
       <AnimatePresence mode="wait">
         {step === 1 && (
-          <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-5">
+          <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Pour quel jeu ?</p>
+            <div className="grid grid-cols-2 gap-3">
+              {GAMES.map(g => (
+                <button key={g.key} onClick={() => setGame(g)}
+                  className={`flex flex-col gap-2 p-5 rounded-2xl border text-left transition-all ${
+                    game?.key === g.key ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted/20'
+                  }`}>
+                  <p className={`font-black text-base ${game?.key === g.key ? 'text-primary' : 'text-foreground'}`}>{g.label}</p>
+                  <p className="text-xs text-muted-foreground leading-snug">{g.desc}</p>
+                  {game?.key === g.key && <Check className="h-4 w-4 text-primary" />}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-5">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Catégorie</p>
               <div className="mt-3 space-y-2">
@@ -172,8 +198,8 @@ function SubmitForm({ categories }) {
           </motion.div>
         )}
 
-        {step === 2 && (
-          <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-4">
+        {step === 3 && (
+          <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-4">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Ta question</p>
             <textarea autoFocus value={content} onChange={e => setContent(e.target.value)} rows={5}
               placeholder="Formule une question claire et sans ambiguïté…"
@@ -184,8 +210,8 @@ function SubmitForm({ categories }) {
           </motion.div>
         )}
 
-        {step === 3 && (
-          <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-4">
+        {step === 4 && (
+          <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Réponses</p>
               <p className="text-xs text-muted-foreground mt-1">Appuie sur le cercle pour marquer la bonne réponse.</p>
@@ -221,11 +247,11 @@ function SubmitForm({ categories }) {
           </motion.div>
         )}
 
-        {step === 4 && (
-          <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-5">
+        {step === 5 && (
+          <motion.div key="s5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="space-y-5">
             <div className="rounded-2xl border border-border bg-card p-4 space-y-1">
               <p className="text-xs text-muted-foreground">
-                {category?.name} · <span className={LEVELS.find(l => l.key === level?.key)?.color}>{level?.label}</span>
+                {game?.label} · {category?.name} · <span className={LEVELS.find(l => l.key === level?.key)?.color}>{level?.label}</span>
               </p>
               <p className="text-sm font-medium leading-snug">{content}</p>
               <p className="text-xs text-muted-foreground">{answers.length} réponses · {answers.filter(a => a.isCorrect).length} correcte</p>
@@ -259,7 +285,7 @@ function SubmitForm({ categories }) {
             className="p-3 rounded-xl text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          {step < 4 ? (
+          {step < 5 ? (
             <button disabled={!canProceed()} onClick={() => setStep(s => s + 1)}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors disabled:opacity-40">
               Continuer <ArrowRight className="h-4 w-4" />
@@ -282,6 +308,7 @@ function SubmitForm({ categories }) {
 
 function ImportForm({ categories }) {
   const inputRef = useRef();
+  const [game, setGame] = useState(null);
   const [file, setFile] = useState(null);
   const [parsed, setParsed] = useState(null);
   const [parseError, setParseError] = useState('');
@@ -352,7 +379,7 @@ function ImportForm({ categories }) {
             {result.errors.map((e, i) => <p key={i} className="text-xs text-muted-foreground">{e}</p>)}
           </div>
         )}
-        <button onClick={() => { setFile(null); setParsed(null); setResult(null); }}
+        <button onClick={() => { setGame(null); setFile(null); setParsed(null); setResult(null); }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors">
           Importer d'autres
         </button>
@@ -362,6 +389,21 @@ function ImportForm({ categories }) {
 
   return (
     <div className="space-y-5 pb-28">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Pour quel jeu ?</p>
+        <div className="grid grid-cols-2 gap-3">
+          {GAMES.map(g => (
+            <button key={g.key} onClick={() => setGame(g)}
+              className={`flex flex-col gap-1.5 p-4 rounded-2xl border text-left transition-all ${
+                game?.key === g.key ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted/20'
+              }`}>
+              <p className={`font-black text-sm ${game?.key === g.key ? 'text-primary' : 'text-foreground'}`}>{g.label}</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">{g.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div
         onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
         onDragOver={e => e.preventDefault()}
@@ -408,7 +450,7 @@ function ImportForm({ categories }) {
 
       <div className="fixed bottom-0 left-0 right-0 lg:left-[240px] z-30 bg-background/95 backdrop-blur-xl border-t border-border px-6 py-4">
         <div className="max-w-2xl mx-auto">
-          <button disabled={!parsed || submitting} onClick={handleSubmit}
+          <button disabled={!parsed || !game || submitting} onClick={handleSubmit}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors disabled:opacity-40">
             {submitting
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Envoi…</>
@@ -593,7 +635,9 @@ function SpaceCode() {
       </div>
 
       <a
-        href="#"
+        href="https://github.com/LesCracks-OS/Tekizz"
+        target="_blank"
+        rel="noopener noreferrer"
         className="flex items-center justify-between p-5 rounded-2xl border border-border bg-card hover:border-foreground/30 transition-colors group"
       >
         <div className="flex items-center gap-3">
