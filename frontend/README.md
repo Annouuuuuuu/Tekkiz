@@ -24,7 +24,7 @@ SPA React pour la plateforme de formation tech gamifiée Tekizz.
 ```
 src/
 ├── pages/
-│   ├── dashboard/       # Play, QcmGame*, SmatchGame*, Performance, Leaderboard, Contribute, Settings
+│   ├── dashboard/       # Play, QcmGame, SmatchGame, Performance, Leaderboard, Contribute, Settings
 │   ├── admin/
 │   │   ├── qcm/         # Categories, Questions, Tags, Sessions, Config, Contributions
 │   │   └── smatch/      # Decks, DeckEditor, Sessions, Config
@@ -52,11 +52,19 @@ src/
 
 ## Lancer le projet
 
+### Via Docker Compose (recommandé)
+
+Depuis la racine du projet :
+
+```bash
+docker compose up -d
+```
+
+### Développement local
+
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
-pnpm build        # Build production dans dist/
-pnpm preview      # Prévisualiser le build
+pnpm dev
 ```
 
 Créer un `.env` à la racine du dossier `frontend/` :
@@ -65,20 +73,6 @@ Créer un `.env` à la racine du dossier `frontend/` :
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-En production cette variable pointe vers `https://api.tekizz.lescracks.com`.
-
 ---
 
-## Docker
-
-L'image de production utilise un build multi-stage : Vite build → Nginx.
-
-```bash
-docker build -t brandoniscoding/frontend-tekizz:latest .
-```
-
-La configuration Nginx (`nginx.conf`) gère le routing SPA (fallback sur `index.html`) et le proxy `/api` vers le backend.
-
----
-
-Développé par **Brandon Kamga**
+Développé par [LesCracks-OS](https://github.com/LesCracks-OS)

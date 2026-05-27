@@ -101,18 +101,23 @@ Le backend est un **monolithe modulaire** organisé en 6 bounded contexts. Chaqu
 
 ## Lancer le projet
 
-```bash
-# Copier et renseigner les variables d'environnement
-cp .env.example .env
+### Via Docker Compose (recommandé)
 
-# Démarrer (dev)
+```bash
+cp .env.example .env
+# Renseigner les variables
+
+docker compose up -d
+```
+
+### Développement local
+
+```bash
+cp .env.example .env
 ./mvnw spring-boot:run
 
 # Tests
 ./mvnw test
-
-# Build production (JAR)
-./mvnw clean package -DskipTests
 ```
 
 ### Variables d'environnement requises
@@ -128,16 +133,4 @@ cp .env.example .env
 
 ---
 
-## Docker
-
-```bash
-# Build image
-docker build -t brandoniscoding/backend-tekizz:latest .
-
-# Démarrage production (avec docker-compose.prod.yml à la racine)
-docker compose -f ../docker-compose.prod.yml up -d backend
-```
-
----
-
-Développé par **Brandon Kamga**
+Développé par [LesCracks-OS](https://github.com/LesCracks-OS)
