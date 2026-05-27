@@ -29,12 +29,12 @@ function TimerBar({ remaining, max }) {
 
   return (
     <div className="flex items-center gap-3">
-      <Clock className={`h-4 w-4 shrink-0 ${urgent ? 'text-red-400 animate-pulse' : 'text-muted-foreground'}`} />
-      <div className="relative flex-1 h-1.5 bg-white/8 rounded-full overflow-hidden">
+      <Clock className={`h-4 w-4 shrink-0 ${urgent ? 'text-red-400 animate-pulse' : 'text-white/30'}`} />
+      <div className="relative flex-1 h-1 bg-white/[0.07] rounded-full overflow-hidden">
         <motion.div className={`absolute inset-y-0 left-0 rounded-full ${color}`}
           style={{ width: `${pct}%` }} transition={{ duration: 0.6 }} />
       </div>
-      <span className={`font-mono text-sm font-black w-10 text-right tabular-nums ${urgent ? 'text-red-400' : ''}`}>
+      <span className={`font-mono text-sm font-black w-10 text-right tabular-nums ${urgent ? 'text-red-400' : 'text-white/50'}`}>
         {fmt(remaining)}
       </span>
     </div>
@@ -55,39 +55,39 @@ function Hearts({ count }) {
 }
 
 function AnswerBtn({ answer, index, selected, correct, revealed, onClick, disabled }) {
-  let ring = 'border-white/10 bg-white/4';
-  let labelRing = 'bg-white/10 text-foreground';
+  let ring = 'border-white/[0.07] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]';
+  let badge = 'bg-white/[0.07] text-white/40';
 
   if (revealed) {
     if (correct) {
-      ring = 'border-emerald-500 bg-emerald-500/12 shadow-lg shadow-emerald-500/10';
-      labelRing = 'bg-emerald-500/30 text-emerald-300';
+      ring = 'border-emerald-500/40 bg-emerald-500/10 shadow-lg shadow-emerald-500/10';
+      badge = 'bg-emerald-500/25 text-emerald-300';
     } else if (selected && !correct) {
-      ring = 'border-red-500 bg-red-500/12';
-      labelRing = 'bg-red-500/30 text-red-300';
+      ring = 'border-red-500/40 bg-red-500/[0.08]';
+      badge = 'bg-red-500/20 text-red-300';
     }
   } else if (selected) {
-    ring = 'border-primary bg-primary/12 shadow-lg shadow-primary/15';
-    labelRing = 'bg-primary/30 text-primary';
+    ring = 'border-primary/40 bg-primary/10 shadow-lg shadow-primary/15';
+    badge = 'bg-primary/25 text-primary';
   }
 
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileHover={!disabled && !revealed ? { scale: 1.015 } : {}}
-      whileTap={!disabled && !revealed ? { scale: 0.985 } : {}}
-      className={`w-full p-4 text-left rounded-2xl border-2 transition-all duration-150 ${ring} ${
-        !disabled && !revealed ? 'cursor-pointer hover:border-primary/50' : 'cursor-default'
+      whileHover={!disabled && !revealed ? { scale: 1.012 } : {}}
+      whileTap={!disabled && !revealed ? { scale: 0.988 } : {}}
+      className={`w-full p-4 text-left rounded-2xl border transition-all duration-150 ${ring} ${
+        !disabled && !revealed ? 'cursor-pointer' : 'cursor-default'
       }`}
     >
       <div className="flex items-center gap-4">
-        <span className={`shrink-0 flex items-center justify-center w-9 h-9 rounded-xl text-sm font-black transition-colors ${labelRing}`}>
+        <span className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-xl text-xs font-black transition-colors ${badge}`}>
           {LABELS[index]}
         </span>
-        <span className="flex-1 text-sm leading-snug font-medium">{answer.content}</span>
-        {revealed && correct && <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />}
-        {revealed && selected && !correct && <XCircle className="h-5 w-5 text-red-400 shrink-0" />}
+        <span className="flex-1 text-sm leading-snug font-medium text-white/80">{answer.content}</span>
+        {revealed && correct && <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />}
+        {revealed && selected && !correct && <XCircle className="h-4 w-4 text-red-400 shrink-0" />}
       </div>
     </motion.button>
   );
@@ -104,7 +104,6 @@ function QcmGamePlayContent() {
     setSession, setQuestion, updateGameState, setLoading, setError, gameOver,
   } = useQcmGame();
 
-  // Config comes from sessionStorage (separate QcmGameProvider instance per page)
   const savedConfig = useMemo(() => {
     try { return JSON.parse(sessionStorage.getItem('qcmConfig') || '{}'); } catch { return {}; }
   }, []);
@@ -176,7 +175,6 @@ function QcmGamePlayContent() {
     if (loaded && sessionId && !currentQuestion) fetchNext();
   }, [loaded, sessionId, currentQuestion, fetchNext]);
 
-
   const submit = async (id = selectedId) => {
     if (!id || submitting || !currentQuestion) return;
     setSubmitting(true);
@@ -202,13 +200,15 @@ function QcmGamePlayContent() {
   /* ─── Loading screen ─── */
   if ((isLoading && !currentQuestion) || !loaded) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <div className="relative w-16 h-16 mx-auto">
-            <Loader2 className="h-16 w-16 animate-spin text-primary/30" />
-            <Zap className="h-6 w-6 text-primary absolute inset-0 m-auto" />
+            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
+            <div className="relative flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/20 rounded-full">
+              <Zap className="h-7 w-7 text-primary" />
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">Chargement de la question...</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-white/30">Chargement...</p>
         </div>
       </div>
     );
@@ -217,32 +217,33 @@ function QcmGamePlayContent() {
   /* ─── Game over screen ─── */
   if (isGameOver) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background px-4">
-        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <motion.div initial={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="text-center max-w-sm w-full space-y-8">
           <div className="relative w-28 h-28 mx-auto">
-            <div className="absolute inset-0 bg-red-500/15 rounded-full animate-ping" />
-            <div className="relative flex items-center justify-center w-28 h-28 bg-red-500/10 border-2 border-red-500/30 rounded-full">
+            <div className="absolute inset-0 bg-red-500/10 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="relative flex items-center justify-center w-28 h-28 bg-red-500/10 border border-red-500/20 rounded-full">
               <AlertTriangle className="h-12 w-12 text-red-400" />
             </div>
           </div>
           <div>
-            <h2 className="text-4xl font-black">Fin du jeu !</h2>
-            <p className="text-muted-foreground mt-2 text-sm">Vous n'avez plus de vies.</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-red-400/70 mb-2">Fin du jeu</p>
+            <h2 className="text-4xl font-black text-white">Toutes les vies perdues</h2>
           </div>
-          <div className="flex justify-center gap-10">
+          <div className="flex justify-center gap-12">
             <div className="text-center">
               <p className="text-4xl font-black text-primary tabular-nums">{score}</p>
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">Points</p>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/25 mt-1">Points</p>
             </div>
-            <div className="w-px bg-border" />
+            <div className="w-px bg-white/[0.07]" />
             <div className="text-center">
-              <p className="text-4xl font-black tabular-nums">{questionIndex - 1}</p>
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1">Correct</p>
+              <p className="text-4xl font-black text-white tabular-nums">{questionIndex - 1}</p>
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/25 mt-1">Correct</p>
             </div>
           </div>
           <button onClick={() => navigate(`/dashboard/play/qcm/${sessionId}/results`)}
-            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-sm hover:bg-primary/90 transition-colors">
+            className="w-full py-4 rounded-2xl bg-primary text-white font-black text-sm hover:brightness-110 transition-all shadow-xl shadow-primary/20">
             Voir les résultats
           </button>
         </motion.div>
@@ -253,30 +254,30 @@ function QcmGamePlayContent() {
   const diff = currentQuestion?.difficultyLevel;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
 
       {/* ─── HUD ─── */}
-      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-white/6">
+      <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/[0.07]" style={{ background: "rgba(8,8,8,0.92)" }}>
         <div className="max-w-2xl mx-auto px-5 py-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Hearts count={livesRemaining} />
-              <span className="text-xs font-black font-mono text-muted-foreground border border-white/10 rounded-lg px-2 py-0.5">
+              <span className="text-xs font-black font-mono text-white/30 border border-white/[0.07] rounded-lg px-2 py-0.5">
                 Q{questionIndex}
               </span>
               {diff && (
-                <span className={`text-[11px] font-black border rounded-lg px-2 py-0.5 ${DIFF_STYLE[diff] || 'text-muted-foreground border-white/10'}`}>
+                <span className={`text-[10px] font-black border rounded-lg px-2 py-0.5 ${DIFF_STYLE[diff] || 'text-white/30 border-white/10'}`}>
                   {diff}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-primary/12 border border-primary/20 rounded-full px-3.5 py-1.5">
+              <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full px-3.5 py-1.5">
                 <Trophy className="h-3.5 w-3.5 text-primary" />
                 <span className="font-black text-primary text-sm tabular-nums">{score}</span>
               </div>
               <button onClick={abandon}
-                className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
+                className="text-xs text-white/25 hover:text-white/60 px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors">
                 Quit
               </button>
             </div>
@@ -294,23 +295,25 @@ function QcmGamePlayContent() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQuestion?.questionId}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -18 }}
             transition={{ duration: 0.22 }}
           >
-            {/* Question number accent */}
             <div className="flex items-baseline gap-3 mb-5">
-              <span className="text-[3.5rem] font-black leading-none text-border tabular-nums select-none">{String(questionIndex).padStart(2, '0')}</span>
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground pb-1">Question</span>
+              <span className="text-[3.5rem] font-black leading-none text-white/[0.06] tabular-nums select-none">
+                {String(questionIndex).padStart(2, '0')}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-[0.22em] text-white/25 pb-1">Question</span>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-7">
+            {/* Question card — landing page style */}
+            <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.02] p-7">
               {hintsEnabled && currentQuestion?.showHint && currentQuestion?.hint && (
                 <button onClick={() => setShowHint(!showHint)}
-                  className="mb-4 flex items-center gap-2 text-xs text-yellow-400 hover:text-yellow-300 transition-colors">
+                  className="mb-4 flex items-center gap-2 text-xs text-yellow-400/70 hover:text-yellow-400 transition-colors">
                   <Lightbulb className="h-3.5 w-3.5" />
-                  {showHint ? 'Masquer l\'indice' : 'Indice'}
+                  {showHint ? "Masquer l'indice" : 'Indice'}
                 </button>
               )}
 
@@ -318,14 +321,14 @@ function QcmGamePlayContent() {
                 {showHint && currentQuestion?.hint && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-5">
-                    <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-sm text-yellow-300 leading-relaxed">
+                    <div className="p-4 rounded-xl bg-yellow-500/[0.07] border border-yellow-500/20 text-sm text-yellow-300/80 leading-relaxed">
                       {currentQuestion.hint}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <p className="text-xl font-semibold leading-relaxed">
+              <p className="text-xl font-semibold leading-relaxed text-white/90">
                 {currentQuestion?.content}
               </p>
             </div>
@@ -333,7 +336,7 @@ function QcmGamePlayContent() {
         </AnimatePresence>
 
         {/* Answers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {currentQuestion?.answers?.map((ans, i) => (
             <AnswerBtn
               key={ans.answerId}
@@ -351,7 +354,8 @@ function QcmGamePlayContent() {
       </div>
 
       {/* ─── Fixed bottom action panel ─── */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[240px] z-30 bg-background/95 backdrop-blur-xl border-t border-white/8">
+      <div className="fixed bottom-0 left-0 right-0 lg:left-[240px] z-30 backdrop-blur-xl border-t border-white/[0.07]"
+        style={{ background: "rgba(8,8,8,0.95)" }}>
         <div className="max-w-2xl mx-auto px-5 py-4">
           <AnimatePresence mode="wait">
             {!lastAnswerResult ? (
@@ -360,7 +364,7 @@ function QcmGamePlayContent() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
                 onClick={() => submit()}
                 disabled={!selectedId || submitting}
-                className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-14 rounded-2xl bg-primary text-white font-black text-sm shadow-xl shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting
                   ? <Loader2 className="h-5 w-5 animate-spin" />
@@ -373,8 +377,8 @@ function QcmGamePlayContent() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
                 className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${
                   lastAnswerResult.isCorrect
-                    ? 'border-emerald-500/30 bg-emerald-500/8'
-                    : 'border-red-500/30 bg-red-500/8'
+                    ? 'border-emerald-500/30 bg-emerald-500/[0.07]'
+                    : 'border-red-500/30 bg-red-500/[0.07]'
                 }`}
               >
                 {lastAnswerResult.isCorrect
@@ -386,12 +390,12 @@ function QcmGamePlayContent() {
                     {lastAnswerResult.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse'}
                   </p>
                   {!lastAnswerResult.isCorrect && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      La bonne réponse était : <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
+                    <p className="text-xs text-white/40 truncate">
+                      Bonne réponse : <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
                     </p>
                   )}
                   {explanationsEnabled && lastAnswerResult.explanation && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{lastAnswerResult.explanation}</p>
+                    <p className="text-xs text-white/30 mt-0.5 line-clamp-2 leading-relaxed">{lastAnswerResult.explanation}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -403,9 +407,9 @@ function QcmGamePlayContent() {
                   {lastAnswerResult.hasNextQuestion && (
                     <button
                       onClick={fetchNext}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-black hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                     >
-                      Question suivante <ArrowRight className="h-4 w-4" />
+                      Suivant <ArrowRight className="h-4 w-4" />
                     </button>
                   )}
                 </div>
