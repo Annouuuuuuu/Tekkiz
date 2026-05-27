@@ -1,9 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 const NavBar = () => {
-  const { t } = useTranslation('common');
   const location = useLocation();
 
   const scrollToSection = (sectionId) => {
@@ -23,13 +21,13 @@ const NavBar = () => {
         onClick={() => scrollToSection('features')}
         className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
-        {t("header.features")}
+        Fonctionnalités
       </button>
       <button 
         onClick={() => scrollToSection('faq')}
         className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
-        {t("header.faq")}
+        FAQ
       </button>
     </nav>
   );
