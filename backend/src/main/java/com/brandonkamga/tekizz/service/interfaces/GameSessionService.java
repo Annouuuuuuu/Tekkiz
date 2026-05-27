@@ -4,7 +4,7 @@ import com.brandonkamga.tekizz.domain.Category;
 import com.brandonkamga.tekizz.domain.GameSession;
 import com.brandonkamga.tekizz.domain.GameStatus;
 import com.brandonkamga.tekizz.domain.GameType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,7 +37,7 @@ public interface GameSessionService {
      * @param user the user
      * @return list of game sessions for the user
      */
-    List<GameSession> findByUser(User user);
+    List<GameSession> findByUser(UserJpaEntity user);
 
     /**
      * Find game sessions by user ID.
@@ -53,7 +53,7 @@ public interface GameSessionService {
      * @param user the user
      * @return list of game sessions ordered by started date
      */
-    List<GameSession> findByUserOrderByStartedAtDesc(User user);
+    List<GameSession> findByUserOrderByStartedAtDesc(UserJpaEntity user);
 
     /**
      * Find game sessions by user ID ordered by started date descending.
@@ -70,7 +70,7 @@ public interface GameSessionService {
      * @param status the game status
      * @return list of game sessions
      */
-    List<GameSession> findByUserAndStatus(User user, GameStatus status);
+    List<GameSession> findByUserAndStatus(UserJpaEntity user, GameStatus status);
 
     /**
      * Find game sessions by user ID and status.

@@ -1,4 +1,4 @@
-package com.brandonkamga.tekizz.security.jwt;
+package com.brandonkamga.tekizz.iam.infrastructure.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,8 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * JWT Authentication Filter that extracts and validates JWT tokens from requests.
- * This filter is responsible for setting up Spring Security context for stateless authentication.
+ * JWT Authentication Filter.
+ * Moved from security.jwt to iam.infrastructure.security.jwt.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -39,40 +39,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        // Check if Authorization header exists and starts with "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extract JWT token from "Bearer <token>" format
         jwt = authHeader.substring(7);
 
         try {
-            // Extract email from JWT token
             userEmail = jwtService.extractEmail(jwt);
 
-            // If email is present and no authentication exists yet
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Load user details from database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-                // Validate the token
                 if (jwtService.validateToken(jwt)) {
-                    // Create authentication token
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    // Set authentication in security context
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
         } catch (Exception e) {
-            // Token is invalid, continue without authentication
             logger.error("JWT token validation failed: " + e.getMessage());
         }
 

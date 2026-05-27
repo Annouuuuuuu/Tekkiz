@@ -12,7 +12,7 @@ import com.brandonkamga.tekizz.domain.Question;
 import com.brandonkamga.tekizz.domain.QuestionLevel;
 import com.brandonkamga.tekizz.domain.QuestionLevelType;
 import com.brandonkamga.tekizz.domain.QuestionStatusType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 import com.brandonkamga.tekizz.domain.UserAnswer;
 import com.brandonkamga.tekizz.dto.qcm.QcmGameConfigRequest;
 import com.brandonkamga.tekizz.dto.qcm.QcmGameResultResponse;
@@ -32,7 +32,7 @@ import com.brandonkamga.tekizz.repository.GameSessionRepository;
 import com.brandonkamga.tekizz.repository.GameStatusRepository;
 import com.brandonkamga.tekizz.repository.QuestionRepository;
 import com.brandonkamga.tekizz.repository.UserAnswerRepository;
-import com.brandonkamga.tekizz.repository.UserRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import com.brandonkamga.tekizz.service.interfaces.QcmGameService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +75,7 @@ public class QcmGameServiceImpl implements QcmGameService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final UserAnswerRepository userAnswerRepository;
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     public QcmGameServiceImpl(
             GameSessionRepository gameSessionRepository,
@@ -85,7 +85,7 @@ public class QcmGameServiceImpl implements QcmGameService {
             QuestionRepository questionRepository,
             AnswerRepository answerRepository,
             UserAnswerRepository userAnswerRepository,
-            UserRepository userRepository) {
+            UserJpaRepository userRepository) {
         this.gameSessionRepository = gameSessionRepository;
         this.gameRepository = gameRepository;
         this.gameStatusRepository = gameStatusRepository;
@@ -99,7 +99,7 @@ public class QcmGameServiceImpl implements QcmGameService {
     @Override
     public QcmGameSessionResponse createGameSession(Long userId, QcmGameConfigRequest config) {
         // Validate user
-        User user = userRepository.findById(userId)
+        UserJpaEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         // Validate category
@@ -771,7 +771,7 @@ public class QcmGameServiceImpl implements QcmGameService {
         for (Map.Entry<Long, List<GameSession>> entry : byUser.entrySet()) {
             Long userId = entry.getKey();
             List<GameSession> userSessions = entry.getValue();
-            User user = userSessions.get(0).getUser();
+            UserJpaEntity user = userSessions.get(0).getUser();
 
             int totalScore = userSessions.stream().mapToInt(GameSession::getTotalScore).sum();
             int gamesPlayed = userSessions.size();

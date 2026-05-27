@@ -1,4 +1,4 @@
-package com.brandonkamga.tekizz.security.oauth;
+package com.brandonkamga.tekizz.iam.infrastructure.security.oauth;
 
 import com.brandonkamga.tekizz.domain.Profile;
 import com.brandonkamga.tekizz.domain.Provider;
@@ -9,8 +9,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 /**
- * Google OAuth2 user info extractor implementation.
- * Extracts user information specific to Google's OAuth2 response format.
+ * Google OAuth2 user info extractor.
+ * Moved from security.oauth to iam.infrastructure.security.oauth.
  */
 @Component
 public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
@@ -58,13 +58,10 @@ public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
 
     @Override
     public User buildUser(OAuth2User oauthUser, Role role, Provider provider) {
-
         String email = extractEmail(oauthUser);
         String providerUserId = extractProviderUserId(oauthUser);
-
         String givenName = oauthUser.getAttribute("given_name");
         String familyName = oauthUser.getAttribute("family_name");
-
         String username = extractUsername(oauthUser);
 
         if (username == null && email != null) {
@@ -78,7 +75,6 @@ public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
         user.setProviderUserId(providerUserId);
         user.setRole(role);
 
-        // Create profile with firstName and lastName
         Profile profile = Profile.builder()
                 .user(user)
                 .firstName(givenName)
@@ -88,5 +84,4 @@ public class GoogleOAuthUserInfoExtractor implements OAuthUserInfoExtractor {
 
         return user;
     }
-
 }

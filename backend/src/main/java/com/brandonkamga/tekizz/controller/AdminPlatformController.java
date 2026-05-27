@@ -2,11 +2,12 @@ package com.brandonkamga.tekizz.controller;
 
 import com.brandonkamga.tekizz.domain.Role;
 import com.brandonkamga.tekizz.domain.RoleType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 import com.brandonkamga.tekizz.dto.ApiResponse;
 import com.brandonkamga.tekizz.dto.admin.AdminRoleUpdateRequest;
 import com.brandonkamga.tekizz.dto.admin.AdminStatsResponse;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import com.brandonkamga.tekizz.repository.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminPlatformController {
 
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private final RoleRepository roleRepository;
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
@@ -35,7 +36,7 @@ public class AdminPlatformController {
     private final SmatchPairRepository smatchPairRepository;
     private final SmatchSessionRepository smatchSessionRepository;
 
-    public AdminPlatformController(UserRepository userRepository,
+    public AdminPlatformController(UserJpaRepository userRepository,
                                    RoleRepository roleRepository,
                                    QuestionRepository questionRepository,
                                    CategoryRepository categoryRepository,
@@ -92,7 +93,7 @@ public class AdminPlatformController {
             @RequestParam(defaultValue = "") String search,
             @RequestParam(required = false) String role) {
 
-        List<User> users = userRepository.findAll();
+        List<UserJpaEntity> users = userRepository.findAll();
 
         List<Map<String, Object>> result = users.stream()
                 .filter(u -> search.isEmpty()
@@ -127,7 +128,7 @@ public class AdminPlatformController {
             @Valid @RequestBody AdminRoleUpdateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User user = userRepository.findById(id)
+        UserJpaEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
         // Prevent admin from demoting themselves
@@ -152,7 +153,7 @@ public class AdminPlatformController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        User user = userRepository.findById(id)
+        UserJpaEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
         if (userDetails != null && user.getEmail().equals(userDetails.getUsername())) {

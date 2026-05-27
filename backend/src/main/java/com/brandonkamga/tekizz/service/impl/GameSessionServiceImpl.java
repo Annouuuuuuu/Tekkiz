@@ -4,7 +4,7 @@ import com.brandonkamga.tekizz.domain.Category;
 import com.brandonkamga.tekizz.domain.GameSession;
 import com.brandonkamga.tekizz.domain.GameStatus;
 import com.brandonkamga.tekizz.domain.GameType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
 import com.brandonkamga.tekizz.repository.GameSessionRepository;
 import com.brandonkamga.tekizz.service.interfaces.GameSessionService;
@@ -43,7 +43,7 @@ public class GameSessionServiceImpl implements GameSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GameSession> findByUser(User user) {
+    public List<GameSession> findByUser(UserJpaEntity user) {
         return gameSessionRepository.findByUser(user);
     }
 
@@ -55,7 +55,7 @@ public class GameSessionServiceImpl implements GameSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GameSession> findByUserOrderByStartedAtDesc(User user) {
+    public List<GameSession> findByUserOrderByStartedAtDesc(UserJpaEntity user) {
         return gameSessionRepository.findByUserOrderByStartedAtDesc(user);
     }
 
@@ -67,7 +67,7 @@ public class GameSessionServiceImpl implements GameSessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GameSession> findByUserAndStatus(User user, GameStatus status) {
+    public List<GameSession> findByUserAndStatus(UserJpaEntity user, GameStatus status) {
         return gameSessionRepository.findByUserAndStatus(user, status);
     }
 

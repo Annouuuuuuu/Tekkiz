@@ -49,7 +49,7 @@ public class GameSession {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id", nullable = false)

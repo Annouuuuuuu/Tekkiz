@@ -1,6 +1,6 @@
-package com.brandonkamga.tekizz.config;
+package com.brandonkamga.tekizz.iam.infrastructure.config;
 
-import com.brandonkamga.tekizz.security.jwt.JwtAuthenticationFilter;
+import com.brandonkamga.tekizz.iam.infrastructure.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +20,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Security configuration.
+ * Moved from config.SecurityConfig to iam.infrastructure.config.SecurityConfig.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -28,7 +32,8 @@ public class SecurityConfig {
     private final OAuth2LoginSuccessHandler successHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(OAuth2LoginSuccessHandler successHandler, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(OAuth2LoginSuccessHandler successHandler,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.successHandler = successHandler;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -70,7 +75,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

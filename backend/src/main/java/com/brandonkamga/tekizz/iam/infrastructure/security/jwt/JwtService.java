@@ -1,4 +1,4 @@
-package com.brandonkamga.tekizz.security.jwt;
+package com.brandonkamga.tekizz.iam.infrastructure.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Service for JWT token generation and validation.
- * Implements token-based authentication for both OAuth and local users.
+ * JWT token generation and validation.
+ * Moved from security.jwt to iam.infrastructure.security.jwt.
  */
 @Service
 public class JwtService {
@@ -35,12 +35,6 @@ public class JwtService {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * Generate JWT token for OAuth2 authenticated user.
-     * 
-     * @param authentication the Spring Security authentication
-     * @return the JWT token string
-     */
     public String generateToken(Authentication authentication) {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
         String email = resolveEmail(oauthUser);
@@ -51,19 +45,11 @@ public class JwtService {
     private String resolveEmail(OAuth2User oauthUser) {
         String email = oauthUser.getAttribute("email");
         if (email != null && !email.isBlank()) return email;
-        // GitHub users with private emails — use same fallback as GitHubOAuthUserInfoExtractor
         Object id = oauthUser.getAttribute("id");
         String key = id != null ? id.toString() : oauthUser.getAttribute("login");
         return (key != null ? key : "unknown") + "@github.local";
     }
 
-    /**
-     * Generate JWT token for local user authentication.
-     * 
-     * @param email the user's email
-     * @param provider the authentication provider
-     * @return the JWT token string
-     */
     public String generateTokenForUser(String email, String provider) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
@@ -82,7 +68,6 @@ public class JwtService {
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
-
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
@@ -92,12 +77,6 @@ public class JwtService {
                 .compact();
     }
 
-    /**
-     * Extract all claims from a JWT token.
-     * 
-     * @param token the JWT token
-     * @return the claims object
-     */
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -106,32 +85,14 @@ public class JwtService {
                 .getPayload();
     }
 
-    /**
-     * Extract email from token.
-     * 
-     * @param token the JWT token
-     * @return the email/subject
-     */
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    /**
-     * Extract expiration date from token.
-     * 
-     * @param token the JWT token
-     * @return the expiration date
-     */
     public Date extractExpiration(String token) {
         return extractAllClaims(token).getExpiration();
     }
 
-    /**
-     * Check if token is expired.
-     * 
-     * @param token the JWT token
-     * @return true if expired
-     */
     public boolean isTokenExpired(String token) {
         try {
             return extractExpiration(token).before(new Date());
@@ -140,12 +101,6 @@ public class JwtService {
         }
     }
 
-    /**
-     * Validate a JWT token.
-     * 
-     * @param token the JWT token
-     * @return true if valid
-     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser()

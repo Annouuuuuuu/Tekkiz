@@ -5,7 +5,7 @@ import com.brandonkamga.tekizz.domain.GameMode;
 import com.brandonkamga.tekizz.domain.GameSession;
 import com.brandonkamga.tekizz.domain.GameStatus;
 import com.brandonkamga.tekizz.domain.GameType;
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,24 +18,24 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GameSessionRepository extends JpaRepository<GameSession, Long> {
     
-    List<GameSession> findByUser(User user);
-    
+    List<GameSession> findByUser(UserJpaEntity user);
+
     List<GameSession> findByUserId(Long userId);
-    
-    List<GameSession> findByUserAndStatus(User user, GameStatus status);
-    
+
+    List<GameSession> findByUserAndStatus(UserJpaEntity user, GameStatus status);
+
     List<GameSession> findByUserIdAndStatus(Long userId, GameStatus status);
-    
+
     List<GameSession> findByCategory(Category category);
-    
+
     List<GameSession> findByCategoryId(Long categoryId);
-    
+
     List<GameSession> findByGameType(GameType gameType);
-    
+
     List<GameSession> findByStatus(GameStatus status);
-    
-    List<GameSession> findByUserOrderByStartedAtDesc(User user);
-    
+
+    List<GameSession> findByUserOrderByStartedAtDesc(UserJpaEntity user);
+
     List<GameSession> findByUserIdOrderByStartedAtDesc(Long userId);
     
     @Query("SELECT gs FROM GameSession gs WHERE gs.user.id = :userId AND gs.status = :status ORDER BY gs.startedAt DESC")
