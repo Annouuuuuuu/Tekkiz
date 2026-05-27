@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services";
 import qcmGameService from "@/services/qcmGame.service";
-import { User, Lock, Trash2, RefreshCw, ExternalLink, Loader2, Globe } from "lucide-react";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { User, Lock, Trash2, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
 
 const SettingsPage = () => {
-  const { t } = useTranslation("common");
   const { user, updateUser, logout } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -50,7 +47,7 @@ const SettingsPage = () => {
   };
 
   const handleResetStats = async () => {
-    if (!window.confirm("Reset all your QCM statistics? This cannot be undone.")) return;
+    if (!window.confirm("Réinitialiser toutes vos statistiques QCM ? Cette action est irréversible.")) return;
     setIsResetting(true);
     try {
       await qcmGameService.resetUserStats();
@@ -62,7 +59,7 @@ const SettingsPage = () => {
   const handleDeleteAccount = async () => {
     if (!user?.id) return;
 
-    if (window.confirm(t("settings.deleteConfirm"))) {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.")) {
       setIsDeleting(true);
       try {
         const result = await userService.deleteAccount(user.id);
@@ -97,61 +94,61 @@ const SettingsPage = () => {
       {/* Page header */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Compte</p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight">{t("settings.account")}</h1>
+        <h1 className="mt-1 text-3xl font-black tracking-tight">Compte</h1>
       </div>
 
       {/* Account section */}
       <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-primary" />
-          <span className="text-sm font-bold">{t("settings.account")}</span>
+          <span className="text-sm font-bold">Compte</span>
         </div>
-        <p className="text-xs text-muted-foreground -mt-3">{t("settings.accountDescription")}</p>
+        <p className="text-xs text-muted-foreground -mt-3">Gérez les informations de votre compte</p>
 
         <form onSubmit={handleSaveAccount} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass} htmlFor="firstName">
-                {t("settings.firstName")}
+                Prénom
               </label>
               <input
                 id="firstName"
                 className={inputClass}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder={t("settings.firstNamePlaceholder")}
+                placeholder="Entrez votre prénom"
               />
             </div>
             <div>
               <label className={labelClass} htmlFor="lastName">
-                {t("settings.lastName")}
+                Nom
               </label>
               <input
                 id="lastName"
                 className={inputClass}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder={t("settings.lastNamePlaceholder")}
+                placeholder="Entrez votre nom"
               />
             </div>
           </div>
 
           <div>
             <label className={labelClass} htmlFor="username">
-              {t("settings.username")}
+              Nom d'utilisateur
             </label>
             <input
               id="username"
               className={inputClass}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={t("settings.usernamePlaceholder")}
+              placeholder="Entrez votre nom d'utilisateur"
             />
           </div>
 
           <div>
             <label className={labelClass} htmlFor="email">
-              {t("settings.email")}
+              Email
             </label>
             <input
               id="email"
@@ -159,13 +156,13 @@ const SettingsPage = () => {
               className={`${inputClass} ${isOAuthUser ? "opacity-60 cursor-not-allowed" : ""}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("settings.emailPlaceholder")}
+              placeholder="Entrez votre email"
               disabled={isOAuthUser}
             />
             {isOAuthUser && (
               <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
                 <ExternalLink className="w-3 h-3" />
-                {t("settings.emailManagedBy", { provider: getProviderLabel(user.provider) })}
+                {`Email géré par ${getProviderLabel(user.provider)}`}
               </p>
             )}
           </div>
@@ -176,7 +173,7 @@ const SettingsPage = () => {
             className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-40 flex items-center gap-2"
           >
             {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {t("settings.saveChanges")}
+            Enregistrer
           </button>
         </form>
       </div>
@@ -186,55 +183,38 @@ const SettingsPage = () => {
         <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">{t("settings.security")}</span>
+            <span className="text-sm font-bold">Sécurité</span>
           </div>
-          <p className="text-xs text-muted-foreground -mt-2">{t("settings.securityDescription")}</p>
+          <p className="text-xs text-muted-foreground -mt-2">Compte OAuth</p>
 
           <div className="rounded-xl border border-border bg-background p-4 flex items-start gap-3">
             <ExternalLink className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-semibold">
-                {t("settings.signedInWith", { provider: getProviderLabel(user.provider) })}
+                {`Connecté avec ${getProviderLabel(user.provider)}`}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {t("settings.passwordManagedBy", { provider: getProviderLabel(user.provider) })}
+                {`Votre mot de passe est géré par ${getProviderLabel(user.provider)}. Modifiez-le depuis votre compte ${getProviderLabel(user.provider)}.`}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Preferences section */}
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-primary" />
-          <span className="text-sm font-bold">{t("settings.preferences")}</span>
-        </div>
-        <p className="text-xs text-muted-foreground -mt-2">{t("settings.preferencesDescription")}</p>
-
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background p-4">
-          <div>
-            <p className="text-sm font-semibold">{t("settings.language")}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("settings.languageDescription")}</p>
-          </div>
-          <LanguageSwitcher variant="light" />
-        </div>
-      </div>
-
       {/* Danger zone */}
       <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 space-y-5">
         <div className="flex items-center gap-2">
           <Trash2 className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-bold text-red-400">{t("settings.data")}</span>
+          <span className="text-sm font-bold text-red-400">Données</span>
         </div>
-        <p className="text-xs text-muted-foreground -mt-3">{t("settings.dataDescription")}</p>
+        <p className="text-xs text-muted-foreground -mt-3">Gérez les données de votre compte</p>
 
         {/* Reset stats */}
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background p-4">
           <div>
-            <p className="text-sm font-semibold">{t("settings.resetStatistics")}</p>
+            <p className="text-sm font-semibold">Réinitialiser les statistiques</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t("settings.resetStatisticsDescription")}
+              Remettre toutes vos statistiques de jeu à zéro
             </p>
           </div>
           <button
@@ -243,16 +223,16 @@ const SettingsPage = () => {
             className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-bold hover:bg-muted/30 transition-colors flex items-center gap-2 shrink-0 disabled:opacity-50"
           >
             {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            {t("settings.reset")}
+            Réinitialiser
           </button>
         </div>
 
         {/* Delete account */}
         <div className="flex items-center justify-between gap-4 rounded-xl border border-red-500/20 bg-background p-4">
           <div>
-            <p className="text-sm font-semibold text-red-400">{t("settings.deleteAccount")}</p>
+            <p className="text-sm font-semibold text-red-400">Supprimer le compte</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t("settings.deleteAccountDescription")}
+              Supprimer définitivement votre compte et toutes vos données
             </p>
           </div>
           <button
@@ -265,7 +245,7 @@ const SettingsPage = () => {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
-            {t("settings.delete")}
+            Supprimer
           </button>
         </div>
       </div>

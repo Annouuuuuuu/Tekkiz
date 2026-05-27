@@ -11,7 +11,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import qcmGameService from '../../services/qcmGame.service';
 import {
   Trophy,
@@ -45,7 +44,7 @@ const GAME_MODE_CONFIG = {
 };
 
 // Question review card component
-function QuestionReviewCard({ review, index, t }) {
+function QuestionReviewCard({ review, index }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -90,7 +89,7 @@ function QuestionReviewCard({ review, index, t }) {
         <div className="mt-3 pl-10 space-y-2">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">{t('qcm.yourAnswer')}</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Votre réponse</p>
               <p
                 className={`text-sm font-medium ${
                   review.wasCorrect ? 'text-emerald-400' : 'text-red-400'
@@ -101,7 +100,7 @@ function QuestionReviewCard({ review, index, t }) {
             </div>
             {!review.wasCorrect && (
               <div>
-                <p className="text-xs text-muted-foreground mb-0.5">{t('qcm.correctAnswer')}</p>
+                <p className="text-xs text-muted-foreground mb-0.5">Réponse correcte :</p>
                 <p className="text-sm font-medium text-emerald-400">{review.correctAnswerContent}</p>
               </div>
             )}
@@ -122,7 +121,6 @@ function QuestionReviewCard({ review, index, t }) {
 // Main results component
 export default function QcmGameResults() {
   const { sessionId } = useParams();
-  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const [results, setResults] = useState(null);
@@ -154,7 +152,7 @@ export default function QcmGameResults() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-3">
           <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-          <p className="text-sm text-muted-foreground">{t('qcm.loadingResults')}</p>
+          <p className="text-sm text-muted-foreground">Chargement des résultats...</p>
         </div>
       </div>
     );
@@ -166,13 +164,13 @@ export default function QcmGameResults() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="max-w-md w-full mx-auto px-6 text-center space-y-4">
           <XCircle className="h-12 w-12 text-red-400 mx-auto" />
-          <h2 className="text-xl font-bold">{t('qcm.error')}</h2>
+          <h2 className="text-xl font-bold">Erreur</h2>
           <p className="text-sm text-muted-foreground">{error}</p>
           <button
             onClick={() => navigate('/dashboard/play')}
             className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
           >
-            {t('qcm.backToPlay')}
+            Retour aux jeux
           </button>
         </div>
       </div>
@@ -209,13 +207,13 @@ export default function QcmGameResults() {
   // Generate insight based on performance
   const getInsight = () => {
     if (accuracy >= 90) {
-      return { icon: Trophy, text: t('qcm.insightExcellent'), color: 'text-yellow-400' };
+      return { icon: Trophy, text: "Excellent ! Vous avez maîtrisé cette catégorie !", color: 'text-yellow-400' };
     } else if (accuracy >= 75) {
-      return { icon: TrendingUp, text: t('qcm.insightGood'), color: 'text-primary' };
+      return { icon: TrendingUp, text: "Belle performance ! Continuez à vous entraîner.", color: 'text-primary' };
     } else if (accuracy >= 50) {
-      return { icon: Target, text: t('qcm.insightAverage'), color: 'text-yellow-400' };
+      return { icon: Target, text: "Bon effort ! Révisez les questions manquées.", color: 'text-yellow-400' };
     } else {
-      return { icon: Lightbulb, text: t('qcm.insightNeedsWork'), color: 'text-orange-400' };
+      return { icon: Lightbulb, text: "Continuez à vous entraîner ! Concentrez-vous sur les concepts.", color: 'text-orange-400' };
     }
   };
 
@@ -231,7 +229,7 @@ export default function QcmGameResults() {
         <Trophy className="h-14 w-14 text-yellow-400 mx-auto" />
         <div>
           <h1 className="text-5xl font-black tabular-nums">{totalScore}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('qcm.points')}</p>
+          <p className="text-sm text-muted-foreground mt-1">Points</p>
         </div>
         <p className="text-sm text-muted-foreground">{categoryName}</p>
         {gameMode && modeConfig && (
@@ -244,10 +242,10 @@ export default function QcmGameResults() {
       {/* Stats grid */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { icon: Target, value: `${(accuracy || 0).toFixed(0)}%`, label: t('qcm.accuracy'), iconClass: 'text-primary' },
-          { icon: Zap, value: (efficiency || 0).toFixed(1), label: t('qcm.efficiency') || 'Efficiency', iconClass: 'text-orange-400' },
-          { icon: Clock, value: formatDuration(durationSeconds), label: t('qcm.duration'), iconClass: 'text-purple-400' },
-          { icon: CheckCircle2, value: `${correctAnswers || 0}/${totalQuestionsAnswered || 0}`, label: t('qcm.correct'), iconClass: 'text-emerald-400' },
+          { icon: Target, value: `${(accuracy || 0).toFixed(0)}%`, label: "Précision", iconClass: 'text-primary' },
+          { icon: Zap, value: (efficiency || 0).toFixed(1), label: "Efficacité", iconClass: 'text-orange-400' },
+          { icon: Clock, value: formatDuration(durationSeconds), label: "Durée", iconClass: 'text-purple-400' },
+          { icon: CheckCircle2, value: `${correctAnswers || 0}/${totalQuestionsAnswered || 0}`, label: "Correct", iconClass: 'text-emerald-400' },
         ].map(({ icon: Icon, value, label, iconClass }) => (
           <div key={label} className="rounded-2xl border border-border bg-card p-4 text-center space-y-1.5">
             <Icon className={`h-5 w-5 mx-auto ${iconClass}`} />
@@ -268,15 +266,15 @@ export default function QcmGameResults() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <TrendingUp className="h-3.5 w-3.5" />
-                {t('qcm.difficultyReached')}:{' '}
+                Atteint:{' '}
                 <span className={`font-bold ml-0.5 ${DIFFICULTY_COLORS[maxDifficultyReached || endingDifficulty] || ''}`}>
                   {maxDifficultyReached || endingDifficulty}
                 </span>
               </span>
               <span>
                 {endReason === 'LIVES_DEPLETED'
-                  ? t('qcm.endReasonLives')
-                  : t('qcm.endReasonTime')}
+                  ? "Vies épuisées"
+                  : "Temps écoulé"}
               </span>
             </div>
           </div>
@@ -285,7 +283,7 @@ export default function QcmGameResults() {
         {/* Accuracy bar */}
         <div className="mt-4 space-y-1.5">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{t('qcm.accuracy')}</span>
+            <span>Précision</span>
             <span className="font-semibold text-foreground">{(accuracy || 0).toFixed(1)}%</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -299,7 +297,7 @@ export default function QcmGameResults() {
         {efficiency && (
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Zap className="h-3.5 w-3.5 text-orange-400" />
-            <span>{t('qcm.efficiencyNote') || 'Score per minute:'}</span>
+            <span>Score par minute :</span>
             <span className="font-semibold text-foreground">{efficiency.toFixed(1)} pts/min</span>
           </div>
         )}
@@ -311,7 +309,7 @@ export default function QcmGameResults() {
           <div className="flex items-center gap-2">
             <XCircle className="h-4 w-4 text-red-400" />
             <h2 className="text-sm font-bold">
-              {t('qcm.mistakesToReview')} ({wrongReviews.length})
+              Erreurs à revoir ({wrongReviews.length})
             </h2>
           </div>
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -320,7 +318,6 @@ export default function QcmGameResults() {
                 key={index}
                 review={review}
                 index={questionReviews.indexOf(review) + 1}
-                t={t}
               />
             ))}
           </div>
@@ -334,14 +331,14 @@ export default function QcmGameResults() {
           className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
         >
           <Play className="h-4 w-4" />
-          {t('qcm.playAgain')}
+          Rejouer
         </button>
         <button
           onClick={() => navigate('/dashboard/play')}
           className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-border bg-card text-sm font-bold hover:bg-muted/30 transition-colors"
         >
           <Home className="h-4 w-4" />
-          {t('qcm.backToPlay')}
+          Retour aux jeux
         </button>
       </div>
     </div>

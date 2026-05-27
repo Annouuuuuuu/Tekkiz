@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
@@ -7,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  * @param {number} averageScore - User's average score
  */
 const GlobalScoreChart = ({ recentGames = [], averageScore = 0 }) => {
-  const { t } = useTranslation("common");
 
   // Transform recent games into chart data
   // Take up to 6 most recent games and normalize scores
@@ -38,16 +36,16 @@ const GlobalScoreChart = ({ recentGames = [], averageScore = 0 }) => {
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{t("performance.scoreEvolution", "Score Evolution")}</CardTitle>
+          <CardTitle className="text-lg">Évolution du score</CardTitle>
           <div className="text-sm text-muted-foreground">
-            {t("performance.avgScore", "Avg Score")}: <span className="font-semibold text-foreground">{Math.round(averageScore)}</span>
+            Score moyen: <span className="font-semibold text-foreground">{Math.round(averageScore)}</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         {!hasData ? (
           <div className="h-40 flex items-center justify-center text-muted-foreground">
-            {t("performance.noData", "No games played yet")}
+            Aucune partie jouée
           </div>
         ) : (
           <div className="relative h-40">
@@ -99,7 +97,7 @@ const GlobalScoreChart = ({ recentGames = [], averageScore = 0 }) => {
         <div className="flex items-center justify-center gap-4 mt-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-primary" />
-            <span className="text-muted-foreground">{t("performance.scorePerGame", "Score per game")}</span>
+            <span className="text-muted-foreground">Score par partie</span>
           </div>
         </div>
       </CardContent>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QcmGameProvider, useQcmGame } from '../../contexts/QcmGameContext';
 import qcmGameService from '../../services/qcmGame.service';
@@ -96,7 +95,6 @@ function AnswerBtn({ answer, index, selected, correct, revealed, onClick, disabl
 
 function QcmGamePlayContent() {
   const { sessionId } = useParams();
-  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const {
@@ -196,7 +194,7 @@ function QcmGamePlayContent() {
   };
 
   const abandon = async () => {
-    if (!window.confirm(t('qcm.confirmAbandon'))) return;
+    if (!window.confirm("Êtes-vous sûr de vouloir abandonner cette partie ?")) return;
     try { await qcmGameService.abandonGameSession(sessionId); } catch (_) {}
     navigate('/dashboard/play');
   };
@@ -210,7 +208,7 @@ function QcmGamePlayContent() {
             <Loader2 className="h-16 w-16 animate-spin text-primary/30" />
             <Zap className="h-6 w-6 text-primary absolute inset-0 m-auto" />
           </div>
-          <p className="text-sm text-muted-foreground">{t('qcm.loadingQuestion')}</p>
+          <p className="text-sm text-muted-foreground">Chargement de la question...</p>
         </div>
       </div>
     );
@@ -229,8 +227,8 @@ function QcmGamePlayContent() {
             </div>
           </div>
           <div>
-            <h2 className="text-4xl font-black">{t('qcm.gameOver')}</h2>
-            <p className="text-muted-foreground mt-2 text-sm">{t('qcm.noLivesRemaining')}</p>
+            <h2 className="text-4xl font-black">Fin du jeu !</h2>
+            <p className="text-muted-foreground mt-2 text-sm">Vous n'avez plus de vies.</p>
           </div>
           <div className="flex justify-center gap-10">
             <div className="text-center">
@@ -245,7 +243,7 @@ function QcmGamePlayContent() {
           </div>
           <button onClick={() => navigate(`/dashboard/play/qcm/${sessionId}/results`)}
             className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-sm hover:bg-primary/90 transition-colors">
-            {t('qcm.viewResults')}
+            Voir les résultats
           </button>
         </motion.div>
       </div>
@@ -312,7 +310,7 @@ function QcmGamePlayContent() {
                 <button onClick={() => setShowHint(!showHint)}
                   className="mb-4 flex items-center gap-2 text-xs text-yellow-400 hover:text-yellow-300 transition-colors">
                   <Lightbulb className="h-3.5 w-3.5" />
-                  {showHint ? 'Hide hint' : t('qcm.hint')}
+                  {showHint ? 'Masquer l\'indice' : 'Indice'}
                 </button>
               )}
 
@@ -366,7 +364,7 @@ function QcmGamePlayContent() {
               >
                 {submitting
                   ? <Loader2 className="h-5 w-5 animate-spin" />
-                  : <><CheckCircle2 className="h-5 w-5" />{t('qcm.submitAnswer')}</>
+                  : <><CheckCircle2 className="h-5 w-5" />Valider la réponse</>
                 }
               </motion.button>
             ) : (
@@ -385,11 +383,11 @@ function QcmGamePlayContent() {
                 }
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-black ${lastAnswerResult.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {lastAnswerResult.isCorrect ? t('qcm.correctAnswer') : t('qcm.wrongAnswer')}
+                    {lastAnswerResult.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse'}
                   </p>
                   {!lastAnswerResult.isCorrect && (
                     <p className="text-xs text-muted-foreground truncate">
-                      {t('qcm.correctAnswerWas')}: <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
+                      La bonne réponse était : <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
                     </p>
                   )}
                   {explanationsEnabled && lastAnswerResult.explanation && (
@@ -407,7 +405,7 @@ function QcmGamePlayContent() {
                       onClick={fetchNext}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-black hover:bg-primary/90 transition-colors"
                     >
-                      {t('qcm.nextQuestion')} <ArrowRight className="h-4 w-4" />
+                      Question suivante <ArrowRight className="h-4 w-4" />
                     </button>
                   )}
                 </div>
