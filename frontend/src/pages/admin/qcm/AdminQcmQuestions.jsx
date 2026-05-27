@@ -51,7 +51,7 @@ function ImportModal({ onClose, categories }) {
         }
         setParsed(data);
       } catch (err) {
-        setParseError("Cannot parse file: " + err.message);
+        setParseError("Impossible de lire le fichier : " + err.message);
       }
     };
     reader.readAsText(f);
@@ -64,7 +64,7 @@ function ImportModal({ onClose, categories }) {
       const r = await adminService.importQcmQuestions(parsed);
       setResult(r.data);
     } catch (err) {
-      setParseError(err?.message || "Import failed");
+      setParseError(err?.message || "Importation échouée");
     }
     setImporting(false);
   };
@@ -74,8 +74,8 @@ function ImportModal({ onClose, categories }) {
       <div className="bg-card w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl border border-border">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <p className="font-bold text-sm">Import questions</p>
-            <p className="text-xs text-muted-foreground mt-0.5">JSON array or TSV (content↹level↹categoryId)</p>
+            <p className="font-bold text-sm">Importer des questions</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tableau JSON ou TSV (contenu↹niveau↹categoryId)</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
             <X className="h-4 w-4" />
@@ -90,8 +90,8 @@ function ImportModal({ onClose, categories }) {
                 className="rounded-xl border-2 border-dashed border-border hover:border-primary/40 bg-muted/10 p-8 text-center cursor-pointer transition-colors"
               >
                 <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm font-medium">{file ? file.name : "Click to select file"}</p>
-                <p className="text-xs text-muted-foreground mt-1">JSON or TSV</p>
+                <p className="text-sm font-medium">{file ? file.name : "Cliquer pour sélectionner un fichier"}</p>
+                <p className="text-xs text-muted-foreground mt-1">JSON ou TSV</p>
                 <input ref={inputRef} type="file" accept=".json,.tsv,.txt" className="hidden"
                   onChange={e => handleFile(e.target.files[0])} />
               </div>
@@ -105,16 +105,16 @@ function ImportModal({ onClose, categories }) {
 
               {parsed && !parseError && (
                 <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-1">
-                  <p className="text-sm font-semibold">{parsed.length} question{parsed.length !== 1 ? 's' : ''} detected</p>
+                  <p className="text-sm font-semibold">{parsed.length} question{parsed.length !== 1 ? 's' : ''} détectée{parsed.length !== 1 ? 's' : ''}</p>
                   <p className="text-xs text-muted-foreground">
-                    Valid JSON rows will be imported. Rows with missing required fields will be skipped.
+                    Les lignes JSON valides seront importées. Les lignes avec des champs manquants seront ignorées.
                   </p>
                 </div>
               )}
 
               <div className="flex gap-3 justify-end">
                 <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl border border-border hover:bg-muted transition-colors">
-                  Cancel
+                  Annuler
                 </button>
                 <button
                   disabled={!parsed || importing}
@@ -122,7 +122,7 @@ function ImportModal({ onClose, categories }) {
                   className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   {importing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {importing ? "Importing…" : `Import ${parsed?.length ?? 0}`}
+                  {importing ? "Importation..." : `Importer ${parsed?.length ?? 0}`}
                 </button>
               </div>
             </>
@@ -130,16 +130,16 @@ function ImportModal({ onClose, categories }) {
             <div className="space-y-4">
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 p-4 text-center">
                 <p className="text-2xl font-black text-emerald-400">{result.imported}</p>
-                <p className="text-sm text-muted-foreground mt-1">question{result.imported !== 1 ? 's' : ''} imported</p>
+                <p className="text-sm text-muted-foreground mt-1">question{result.imported !== 1 ? 's' : ''} importée{result.imported !== 1 ? 's' : ''}</p>
               </div>
               {result.errors?.length > 0 && (
                 <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 space-y-1">
-                  <p className="text-xs font-semibold text-red-400">{result.errors.length} error{result.errors.length !== 1 ? 's' : ''}:</p>
+                  <p className="text-xs font-semibold text-red-400">{result.errors.length} erreur{result.errors.length !== 1 ? 's' : ''} :</p>
                   {result.errors.map((e, i) => <p key={i} className="text-xs text-muted-foreground">{e}</p>)}
                 </div>
               )}
               <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors">
-                Done
+                Terminé
               </button>
             </div>
           )}
@@ -193,7 +193,7 @@ export default function AdminQcmQuestions() {
       await adminService.deleteQcmQuestion(id);
       setQuestions(prev => prev.filter(x => x.id !== id));
     } catch (e) {
-      alert(e?.message ?? "Cannot delete");
+      alert(e?.message ?? "Impossible de supprimer");
     }
     setConfirmDelete(null);
   };

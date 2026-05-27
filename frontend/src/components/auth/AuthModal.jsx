@@ -78,7 +78,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
       onClose();
       navigate("/dashboard");
     } else {
-      setError(result.error || "Login failed. Please check your credentials.");
+      setError(result.error || "Connexion échouée. Vérifiez vos identifiants.");
     }
 
     setIsLoading(false);
@@ -95,7 +95,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
       onClose();
       navigate("/dashboard");
     } else {
-      setError(result.error || "Registration failed. Please try again.");
+      setError(result.error || "Inscription échouée. Veuillez réessayer.");
     }
 
     setIsLoading(false);
