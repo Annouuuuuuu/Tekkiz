@@ -107,8 +107,8 @@ const Sidebar = ({ open, onClose }) => {
       {/* User */}
       <div className="relative border-t border-white/[0.06] px-3 py-4 space-y-1 shrink-0">
         <div className="flex items-center gap-3 px-2 py-2">
-          <Avatar className="h-8 w-8 shrink-0 ring-1 ring-white/[0.1]">
-            <AvatarImage src={user?.avatar} />
+          <Avatar className="h-8 w-8 shrink-0 ring-1 ring-white/10">
+            <AvatarImage src={user?.avatarUrl} />
             <AvatarFallback className="text-xs font-black bg-primary/20 text-primary">{initials()}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
