@@ -10,5 +10,7 @@ public interface UpdateProfileUseCase {
 
     record UpdateProfileCommand(String username, String email,
                                 String firstName, String lastName,
-                                String avatarUrl, String country, String bio) {}
+                                String avatarUrl, String country, String bio,
+                                String githubUrl, String linkedinUrl,
+                                String twitterUrl, String websiteUrl) {}
 }

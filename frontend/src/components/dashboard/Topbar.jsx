@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu } from "lucide-react";
@@ -13,6 +13,7 @@ const PAGE_TITLES = {
 
 const Topbar = ({ onMenuClick }) => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const title = PAGE_TITLES[pathname]
@@ -42,10 +43,18 @@ const Topbar = ({ onMenuClick }) => {
         </div>
       </div>
 
-      <Avatar className="h-8 w-8 cursor-pointer ring-1 ring-white/10 hover:ring-primary/40 transition-all">
-        <AvatarImage src={user?.avatar} />
-        <AvatarFallback className="text-xs font-black bg-primary/20 text-primary">{initials()}</AvatarFallback>
-      </Avatar>
+      <button
+        onClick={() => navigate('/dashboard/settings')}
+        className="flex items-center gap-2.5 group"
+      >
+        <span className="hidden sm:block text-xs font-semibold text-white/35 group-hover:text-white/70 transition-colors">
+          {user?.username}
+        </span>
+        <Avatar className="h-8 w-8 ring-1 ring-white/10 group-hover:ring-primary/40 transition-all">
+          <AvatarImage src={user?.avatarUrl} />
+          <AvatarFallback className="text-xs font-black bg-primary/20 text-primary">{initials()}</AvatarFallback>
+        </Avatar>
+      </button>
     </header>
   );
 };

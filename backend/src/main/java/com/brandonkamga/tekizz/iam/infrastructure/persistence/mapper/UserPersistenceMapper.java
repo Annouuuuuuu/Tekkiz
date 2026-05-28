@@ -46,7 +46,11 @@ public class UserPersistenceMapper {
                     p.getLastName(),
                     p.getAvatarUrl(),
                     p.getCountry(),
-                    p.getBio()
+                    p.getBio(),
+                    p.getGithubUrl(),
+                    p.getLinkedinUrl(),
+                    p.getTwitterUrl(),
+                    p.getWebsiteUrl()
             );
         }
 
@@ -109,6 +113,10 @@ public class UserPersistenceMapper {
                     .avatarUrl(dp.getAvatarUrl())
                     .country(dp.getCountry())
                     .bio(dp.getBio())
+                    .githubUrl(dp.getGithubUrl())
+                    .linkedinUrl(dp.getLinkedinUrl())
+                    .twitterUrl(dp.getTwitterUrl())
+                    .websiteUrl(dp.getWebsiteUrl())
                     .build();
             jpa.setProfile(profileJpa);
         }

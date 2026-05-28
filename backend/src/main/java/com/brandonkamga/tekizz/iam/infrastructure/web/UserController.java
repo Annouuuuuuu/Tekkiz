@@ -8,8 +8,10 @@ import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
 import com.brandonkamga.tekizz.iam.application.port.in.DeleteAccountUseCase;
 import com.brandonkamga.tekizz.iam.application.port.in.UpdateProfileUseCase;
 import com.brandonkamga.tekizz.iam.domain.model.User;
+import com.brandonkamga.tekizz.iam.domain.repository.StoragePort;
 import com.brandonkamga.tekizz.iam.domain.repository.UserRepositoryPort;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -17,12 +19,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -36,15 +42,18 @@ public class UserController {
     private final UpdateProfileUseCase updateProfileUseCase;
     private final DeleteAccountUseCase deleteAccountUseCase;
     private final IamUserMapper userMapper;
+    private final StoragePort storagePort;
 
     public UserController(UserRepositoryPort userRepositoryPort,
                           UpdateProfileUseCase updateProfileUseCase,
                           DeleteAccountUseCase deleteAccountUseCase,
-                          IamUserMapper userMapper) {
+                          IamUserMapper userMapper,
+                          StoragePort storagePort) {
         this.userRepositoryPort = userRepositoryPort;
         this.updateProfileUseCase = updateProfileUseCase;
         this.deleteAccountUseCase = deleteAccountUseCase;
         this.userMapper = userMapper;
+        this.storagePort = storagePort;
     }
 
     @GetMapping
@@ -98,7 +107,11 @@ public class UserController {
                 userRequest.getLastName(),
                 userRequest.getAvatarUrl(),
                 userRequest.getCountry(),
-                userRequest.getBio()
+                userRequest.getBio(),
+                userRequest.getGithubUrl(),
+                userRequest.getLinkedinUrl(),
+                userRequest.getTwitterUrl(),
+                userRequest.getWebsiteUrl()
         );
 
         User updated = updateProfileUseCase.update(id, command);
@@ -116,6 +129,39 @@ public class UserController {
         }
         deleteAccountUseCase.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "User deleted successfully"));
+    }
+
+    @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> uploadAvatar(
+            @RequestParam MultipartFile file) {
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("Only image files are accepted");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new BadRequestException("File must not exceed 5 MB");
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepositoryPort.findByEmail(auth.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", auth.getName()));
+
+        String ext = contentType.contains("png") ? ".png" : contentType.contains("gif") ? ".gif" : ".jpg";
+        String objectName = "avatars/" + user.getId().value() + "/" + UUID.randomUUID() + ext;
+
+        try {
+            String avatarUrl = storagePort.upload(objectName, file.getInputStream(),
+                    file.getSize(), contentType);
+
+            UpdateProfileUseCase.UpdateProfileCommand command = new UpdateProfileUseCase.UpdateProfileCommand(
+                    null, null, null, null, avatarUrl, null, null, null, null, null, null);
+            User updated = updateProfileUseCase.update(user.getId().value(), command);
+            return ResponseEntity.ok(ApiResponse.success(userMapper.toResponse(updated), "Avatar updated"));
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Could not read uploaded file", e);
+        }
     }
 
     private boolean isCurrentUser(Long userId) {

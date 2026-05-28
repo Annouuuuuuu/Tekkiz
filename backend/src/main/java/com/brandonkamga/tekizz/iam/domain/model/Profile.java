@@ -13,11 +13,16 @@ public class Profile {
     private String avatarUrl;
     private String country;
     private String bio;
+    private String githubUrl;
+    private String linkedinUrl;
+    private String twitterUrl;
+    private String websiteUrl;
 
     public Profile() {}
 
     public Profile(Long id, Long userId, String firstName, String lastName,
-                   String avatarUrl, String country, String bio) {
+                   String avatarUrl, String country, String bio,
+                   String githubUrl, String linkedinUrl, String twitterUrl, String websiteUrl) {
         this.id = id;
         this.userId = userId;
         this.firstName = firstName;
@@ -25,6 +30,10 @@ public class Profile {
         this.avatarUrl = avatarUrl;
         this.country = country;
         this.bio = bio;
+        this.githubUrl = githubUrl;
+        this.linkedinUrl = linkedinUrl;
+        this.twitterUrl = twitterUrl;
+        this.websiteUrl = websiteUrl;
     }
 
     public static Profile create(Long userId, String firstName, String lastName) {
@@ -43,6 +52,10 @@ public class Profile {
     public String getAvatarUrl() { return avatarUrl; }
     public String getCountry() { return country; }
     public String getBio() { return bio; }
+    public String getGithubUrl() { return githubUrl; }
+    public String getLinkedinUrl() { return linkedinUrl; }
+    public String getTwitterUrl() { return twitterUrl; }
+    public String getWebsiteUrl() { return websiteUrl; }
 
     // Setters
     public void setId(Long id) { this.id = id; }
@@ -52,4 +65,8 @@ public class Profile {
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public void setCountry(String country) { this.country = country; }
     public void setBio(String bio) { this.bio = bio; }
+    public void setGithubUrl(String githubUrl) { this.githubUrl = githubUrl; }
+    public void setLinkedinUrl(String linkedinUrl) { this.linkedinUrl = linkedinUrl; }
+    public void setTwitterUrl(String twitterUrl) { this.twitterUrl = twitterUrl; }
+    public void setWebsiteUrl(String websiteUrl) { this.websiteUrl = websiteUrl; }
 }

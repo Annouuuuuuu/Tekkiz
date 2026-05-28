@@ -28,7 +28,11 @@ public class IamUserMapper {
                     .lastName(profile.getLastName())
                     .avatarUrl(profile.getAvatarUrl())
                     .country(profile.getCountry())
-                    .bio(profile.getBio());
+                    .bio(profile.getBio())
+                    .githubUrl(profile.getGithubUrl())
+                    .linkedinUrl(profile.getLinkedinUrl())
+                    .twitterUrl(profile.getTwitterUrl())
+                    .websiteUrl(profile.getWebsiteUrl());
         }
 
         return builder.build();

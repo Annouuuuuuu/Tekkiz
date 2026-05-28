@@ -59,6 +59,18 @@ public class ProfileJpaEntity {
     @Column(length = 500)
     private String bio;
 
+    @Column(name = "github_url", length = 255)
+    private String githubUrl;
+
+    @Column(name = "linkedin_url", length = 255)
+    private String linkedinUrl;
+
+    @Column(name = "twitter_url", length = 255)
+    private String twitterUrl;
+
+    @Column(name = "website_url", length = 255)
+    private String websiteUrl;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
