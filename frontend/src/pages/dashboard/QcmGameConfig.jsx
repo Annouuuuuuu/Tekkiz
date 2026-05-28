@@ -136,11 +136,12 @@ function QcmGameConfigContent() {
         showHints,
         showExplanations,
       };
-      sessionStorage.setItem('qcmConfig', JSON.stringify({ showHints, showExplanations }));
       const response = await qcmGameService.createGameSession(config);
       setSession(response);
       setConfig(config);
-      navigate(`/dashboard/play/qcm/${response.sessionId}`);
+      navigate(`/dashboard/play/qcm/${response.sessionId}`, {
+        state: { showHints, showExplanations },
+      });
     } catch (error) {
       setError(error.message || 'Failed to create game session');
     } finally {
@@ -336,8 +337,8 @@ function QcmGameConfigContent() {
                       <p className="text-xs text-white/30 mt-0.5">{opt.sub}</p>
                     </div>
                     <button type="button" onClick={() => opt.set(!opt.value)}
-                      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${opt.value ? 'bg-primary' : 'bg-white/10'}`}>
-                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${opt.value ? 'translate-x-6' : 'translate-x-1'}`} />
+                      className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${opt.value ? 'bg-primary' : 'bg-white/12'}`}>
+                      <span className={`absolute top-[4px] w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${opt.value ? 'left-[calc(100%-20px)]' : 'left-[4px]'}`} />
                     </button>
                   </div>
                 ))}
