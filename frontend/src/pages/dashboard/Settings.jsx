@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services";
 import qcmGameService from "@/services/qcmGame.service";
 import {
   User, Lock, Trash2, RefreshCw, ExternalLink, Loader2,
-  Globe, Github, Linkedin, Twitter, FileText,
+  Globe, Github, Linkedin, Twitter, FileText, Camera,
 } from "lucide-react";
 
 const SettingsPage = () => {
@@ -25,6 +25,10 @@ const SettingsPage = () => {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [twitterUrl, setTwitterUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
+
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -66,6 +70,19 @@ const SettingsPage = () => {
       if (result.success) updateUser(result.data);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+    setIsUploadingAvatar(true);
+    try {
+      const result = await userService.uploadAvatar(file);
+      if (result.success) updateUser(result.data);
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -114,6 +131,62 @@ const SettingsPage = () => {
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/25">Compte</p>
         <h1 className="mt-1 text-3xl font-black tracking-tight text-white">Paramètres</h1>
+      </div>
+
+      {/* ── Avatar ── */}
+      <div className={cardClass}>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <Camera className="w-4 h-4 text-primary" />
+            <span className="text-sm font-black text-white/80">Photo de profil</span>
+          </div>
+          <p className="text-xs text-white/25 ml-6">JPG, PNG ou GIF · max 5 MB</p>
+        </div>
+
+        <div className="flex items-center gap-5">
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/[0.07] bg-white/4">
+              {(avatarPreview || user?.avatarUrl) ? (
+                <img
+                  src={avatarPreview || user.avatarUrl}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl font-black text-primary/60">
+                  {user?.firstName?.[0] || user?.username?.[0] || "?"}
+                </div>
+              )}
+            </div>
+            {isUploadingAvatar && (
+              <div className="absolute inset-0 rounded-2xl bg-black/60 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+            <button
+              type="button"
+              disabled={isUploadingAvatar}
+              onClick={() => avatarInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.07] bg-white/2.5 text-sm font-semibold text-white/60 hover:text-white/90 hover:border-white/20 transition-all disabled:opacity-40"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              Changer la photo
+            </button>
+            {avatarPreview && (
+              <p className="text-[10px] text-primary/70">Photo envoyée avec succès</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSaveAccount} className="space-y-4">
