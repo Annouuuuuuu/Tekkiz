@@ -18,11 +18,14 @@ public class MinioStorageAdapter implements StoragePort {
 
     private final MinioClient minioClient;
     private final String bucket;
+    private final String publicUrl;
 
     public MinioStorageAdapter(MinioClient minioClient,
-                               @Value("${app.storage.minio.bucket}") String bucket) {
+                               @Value("${app.storage.minio.bucket}") String bucket,
+                               @Value("${app.storage.minio.public-url}") String publicUrl) {
         this.minioClient = minioClient;
         this.bucket = bucket;
+        this.publicUrl = publicUrl.stripTrailing().replaceAll("/$", "");
     }
 
     @PostConstruct
@@ -52,14 +55,8 @@ public class MinioStorageAdapter implements StoragePort {
                     .stream(stream, size, -1)
                     .contentType(contentType)
                     .build());
-            // Return public URL: <minio-url>/<bucket>/<objectName>
-            return minioClient.getPresignedObjectUrl(
-                    io.minio.GetPresignedObjectUrlArgs.builder()
-                            .method(io.minio.http.Method.GET)
-                            .bucket(bucket)
-                            .object(objectName)
-                            .build()
-            ).split("\\?")[0]; // strip query params — object is public
+            // Construct public URL directly — bucket is public-read
+            return publicUrl + "/" + bucket + "/" + objectName;
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload object to MinIO: " + e.getMessage(), e);
         }
