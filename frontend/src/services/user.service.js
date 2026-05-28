@@ -162,11 +162,32 @@ async function getUserByEmail(email) {
 }
 
 /**
+ * Upload avatar image for current user.
+ * @param {File} file - Image file (jpg/png/gif, max 5 MB)
+ * @returns {Promise<UserResult>}
+ */
+async function uploadAvatar(file) {
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await apiClient.post(ENDPOINTS.USERS.UPLOAD_AVATAR, form);
+    const user = response.data || response;
+    toast.success('Photo de profil mise à jour');
+    return { success: true, data: user };
+  } catch (error) {
+    const apiError = handleError(error, { showToast: false });
+    toast.error(apiError.message || 'Échec de l\'upload');
+    return { success: false, error: apiError.message, apiError };
+  }
+}
+
+/**
  * User Service Object
  */
 const userService = {
   getProfile,
   updateProfile,
+  uploadAvatar,
   deleteAccount,
   getUserById,
   getUserByEmail,

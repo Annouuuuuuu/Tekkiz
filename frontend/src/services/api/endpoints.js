@@ -29,6 +29,7 @@ export const ENDPOINTS = {
     BY_EMAIL: (email) => `/api/users/email/${email}`,
     UPDATE: (id) => `/api/users/${id}`,
     DELETE: (id) => `/api/users/${id}`,
+    UPLOAD_AVATAR: '/api/users/me/avatar',
   },
 
   // QCM Game endpoints

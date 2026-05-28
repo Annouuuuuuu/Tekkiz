@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Github, Mail, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, useNavigate, Navigate, useLocation } from "react-router-dom";
+
+const OAUTH_ERROR_MESSAGES = {
+  oauth_failed: "L'authentification OAuth a échoué. Réessayez ou utilisez votre email.",
+};
 
 const Login = () => {
   const { loginWithOAuth, login, isAuthenticated } = useAuth();
@@ -13,6 +17,15 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const errorCode = params.get("error");
+    if (errorCode) {
+      setError(OAUTH_ERROR_MESSAGES[errorCode] || "Une erreur est survenue lors de la connexion.");
+    }
+  }, [location.search]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {

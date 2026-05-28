@@ -1,15 +1,39 @@
 package com.brandonkamga.tekizz.iam.infrastructure.security;
 
-/**
- * Re-export: the actual implementation lives in the legacy package.
- * This class extends it to register under the DDD package.
- *
- * We keep the original in place to avoid breaking the @ComponentScan
- * configuration. This is a transitional approach.
- */
-public class CustomUserDetailsService extends com.brandonkamga.tekizz.security.CustomUserDetailsService {
+import com.brandonkamga.tekizz.iam.domain.model.User;
+import com.brandonkamga.tekizz.iam.domain.repository.UserRepositoryPort;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
-    public CustomUserDetailsService(com.brandonkamga.tekizz.repository.UserRepository userRepository) {
-        super(userRepository);
+import java.util.Collections;
+
+/**
+ * Custom UserDetailsService backed by the IAM domain UserRepositoryPort.
+ * Replaces the legacy security.CustomUserDetailsService.
+ */
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepositoryPort userRepositoryPort;
+
+    public CustomUserDetailsService(UserRepositoryPort userRepositoryPort) {
+        this.userRepositoryPort = userRepositoryPort;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepositoryPort.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: '" + email + "'"));
+
+        String authority = user.getRoleName() != null ? "ROLE_" + user.getRoleName() : "ROLE_USER";
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail().value(),
+                user.getPassword() != null ? user.getPassword().value() : "",
+                Collections.singletonList(new SimpleGrantedAuthority(authority))
+        );
     }
 }

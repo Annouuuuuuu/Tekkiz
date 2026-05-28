@@ -1,6 +1,6 @@
 package com.brandonkamga.tekizz.dto;
 
-import com.brandonkamga.tekizz.domain.ProviderType;
+import com.brandonkamga.tekizz.iam.domain.model.vo.ProviderType;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -48,4 +48,16 @@ public class UserRequest {
 
     @Size(max = 500, message = "Bio must not exceed 500 characters")
     private String bio;
+
+    @Size(max = 255, message = "GitHub URL must not exceed 255 characters")
+    private String githubUrl;
+
+    @Size(max = 255, message = "LinkedIn URL must not exceed 255 characters")
+    private String linkedinUrl;
+
+    @Size(max = 255, message = "Twitter URL must not exceed 255 characters")
+    private String twitterUrl;
+
+    @Size(max = 255, message = "Website URL must not exceed 255 characters")
+    private String websiteUrl;
 }

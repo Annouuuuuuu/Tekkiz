@@ -1,23 +1,41 @@
 package com.brandonkamga.tekizz.contribution.application.service;
 
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.entity.CategoryJpaEntity;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository.CategoryRepository;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository.TagRepository;
 import com.brandonkamga.tekizz.contribution.application.port.in.*;
-import com.brandonkamga.tekizz.domain.*;
-import com.brandonkamga.tekizz.dto.contribution.ContributionQuestionRequest;
+import com.brandonkamga.tekizz.contribution.application.port.in.GetAllContributionsUseCase.*;
+import com.brandonkamga.tekizz.contribution.application.port.in.SubmitContributionUseCase.*;
+import com.brandonkamga.tekizz.exception.BadRequestException;
 import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
-import com.brandonkamga.tekizz.repository.*;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.GameTypeName;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionLevelType;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionStatusType;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.Answer;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.Game;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.Question;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.QuestionLevel;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.entity.QuestionStatus;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.AnswerRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.GameRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionLevelRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionStatusRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Contribution bounded context application service.
- * Orchestrates contribution workflows (submit, review, withdraw).
- */
 @Service
 @Transactional
 public class ContributionApplicationService
-        implements SubmitContributionUseCase, WithdrawContributionUseCase, GetMyContributionsUseCase {
+        implements SubmitContributionUseCase, WithdrawContributionUseCase,
+                   GetMyContributionsUseCase, ReviewContributionUseCase,
+                   GetAllContributionsUseCase {
 
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
@@ -26,6 +44,7 @@ public class ContributionApplicationService
     private final GameRepository gameRepository;
     private final QuestionLevelRepository questionLevelRepository;
     private final QuestionStatusRepository questionStatusRepository;
+    private final UserJpaRepository userRepository;
 
     public ContributionApplicationService(
             QuestionRepository questionRepository,
@@ -34,7 +53,8 @@ public class ContributionApplicationService
             TagRepository tagRepository,
             GameRepository gameRepository,
             QuestionLevelRepository questionLevelRepository,
-            QuestionStatusRepository questionStatusRepository) {
+            QuestionStatusRepository questionStatusRepository,
+            UserJpaRepository userRepository) {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.categoryRepository = categoryRepository;
@@ -42,76 +62,146 @@ public class ContributionApplicationService
         this.gameRepository = gameRepository;
         this.questionLevelRepository = questionLevelRepository;
         this.questionStatusRepository = questionStatusRepository;
+        this.userRepository = userRepository;
     }
 
+    // ─── Submit ───────────────────────────────────────────────────────────────
+
     @Override
-    public Question submit(ContributionQuestionRequest req, User submittedBy) {
-        boolean hasCorrect = req.getAnswers().stream()
-                .anyMatch(ContributionQuestionRequest.AnswerRequest::getIsCorrect);
+    public ContributionView submit(SubmitContributionCommand command) {
+        boolean hasCorrect = command.answers().stream().anyMatch(AnswerCommand::isCorrect);
         if (!hasCorrect) throw new IllegalArgumentException("At least one answer must be correct");
 
-        Category category = categoryRepository.findById(req.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", req.getCategoryId()));
-        Game game = gameRepository.findByName("QCM")
+        UserJpaEntity user = userRepository.findById(command.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", command.userId()));
+        CategoryJpaEntity category = categoryRepository.findById(command.categoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", command.categoryId()));
+        Game game = gameRepository.findByName(GameTypeName.QCM.name())
                 .orElseThrow(() -> new ResourceNotFoundException("Game", "name", "QCM"));
-        QuestionLevel level = questionLevelRepository
-                .findByLevelName(QuestionLevelType.valueOf(req.getLevel()))
-                .orElseThrow(() -> new ResourceNotFoundException("QuestionLevel", "name", req.getLevel()));
-        QuestionStatus status = questionStatusRepository
-                .findByStatusName(QuestionStatusType.REVIEW)
+        QuestionLevel level = questionLevelRepository.findByLevelName(QuestionLevelType.valueOf(command.level()))
+                .orElseThrow(() -> new ResourceNotFoundException("QuestionLevel", "name", command.level()));
+        QuestionStatus reviewStatus = questionStatusRepository.findByStatusName(QuestionStatusType.REVIEW)
                 .orElseThrow(() -> new ResourceNotFoundException("QuestionStatus", "name", "REVIEW"));
 
         Question question = Question.builder()
-                .content(req.getContent())
-                .explanation(req.getExplanation())
-                .hint(req.getHint())
-                .game(game)
-                .category(category)
-                .level(level)
-                .status(status)
-                .submittedBy(submittedBy)
+                .content(command.content())
+                .explanation(command.explanation())
+                .hint(command.hint())
+                .game(game).category(category).level(level).status(reviewStatus)
+                .submittedBy(user)
                 .build();
-
         question = questionRepository.save(question);
 
-        for (ContributionQuestionRequest.AnswerRequest ar : req.getAnswers()) {
-            Answer answer = Answer.builder()
-                    .question(question)
-                    .content(ar.getContent())
-                    .isCorrect(ar.getIsCorrect())
-                    .isActive(true)
-                    .build();
-            answerRepository.save(answer);
+        for (AnswerCommand ac : command.answers()) {
+            answerRepository.save(Answer.builder()
+                    .question(question).content(ac.content())
+                    .isCorrect(ac.isCorrect()).isActive(true).build());
         }
 
-        if (req.getTagIds() != null) {
-            for (Long tagId : req.getTagIds()) {
+        if (command.tagIds() != null) {
+            for (Long tagId : command.tagIds()) {
                 tagRepository.findById(tagId).ifPresent(question.getTags()::add);
             }
             question = questionRepository.save(question);
         }
 
-        return question;
+        return toSummaryView(question);
     }
+
+    // ─── Withdraw ─────────────────────────────────────────────────────────────
 
     @Override
     public void withdraw(Long questionId, Long userId) {
         Question q = questionRepository.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question", "id", questionId));
-
         if (q.getSubmittedBy() == null || !q.getSubmittedBy().getId().equals(userId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Not your submission");
+            throw new AccessDeniedException("Not your submission");
         }
         if (q.getStatus().getStatusName() != QuestionStatusType.REVIEW) {
-            throw new com.brandonkamga.tekizz.exception.BadRequestException("Only pending submissions can be withdrawn");
+            throw new BadRequestException("Only pending submissions can be withdrawn");
         }
-
         questionRepository.delete(q);
+    }
+
+    // ─── Get my contributions ─────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContributionView> getMyContributions(Long userId) {
+        return questionRepository.findBySubmittedById(userId).stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .map(this::toSummaryView)
+                .collect(Collectors.toList());
+    }
+
+    // ─── Review (admin) ───────────────────────────────────────────────────────
+
+    @Override
+    public void review(Long questionId, String decision) {
+        Question q = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Question", "id", questionId));
+        if (q.getStatus().getStatusName() != QuestionStatusType.REVIEW) {
+            throw new BadRequestException("Only REVIEW contributions can be reviewed");
+        }
+        QuestionStatusType next = switch (decision.toUpperCase()) {
+            case "APPROVED" -> QuestionStatusType.ACTIVE;
+            case "REJECTED" -> QuestionStatusType.ARCHIVED;
+            default -> throw new IllegalArgumentException("Decision must be APPROVED or REJECTED");
+        };
+        QuestionStatus status = questionStatusRepository.findByStatusName(next)
+                .orElseThrow(() -> new ResourceNotFoundException("QuestionStatus", "name", next));
+        q.setStatus(status);
+        questionRepository.save(q);
+    }
+
+    // ─── Get all contributions (admin) ────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContributionDetailView> getAllContributions() {
+        return questionRepository.findPendingContributions().stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .map(this::toDetailView)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Question> getMyContributions(Long userId) {
-        return questionRepository.findBySubmittedById(userId);
+    public long countPendingContributions() {
+        return questionRepository.countPendingContributions();
+    }
+
+    // ─── Mappers ──────────────────────────────────────────────────────────────
+
+    private ContributionView toSummaryView(Question q) {
+        return new ContributionView(
+                q.getId(),
+                q.getContent().length() > 100 ? q.getContent().substring(0, 100) + "..." : q.getContent(),
+                q.getCategory() != null ? q.getCategory().getId() : null,
+                q.getCategory() != null ? q.getCategory().getName() : null,
+                q.getLevel().getLevelName().name(),
+                q.getStatus().getStatusName().name(),
+                q.getAnswers().size(),
+                q.getSubmittedBy() != null ? q.getSubmittedBy().getUsername() : null,
+                q.getCreatedAt() != null ? q.getCreatedAt().toString() : null);
+    }
+
+    private ContributionDetailView toDetailView(Question q) {
+        List<AnswerView> answers = q.getAnswers().stream()
+                .map(a -> new AnswerView(a.getId(), a.getContent(), a.getIsCorrect()))
+                .collect(Collectors.toList());
+        List<TagView> tags = q.getTags().stream()
+                .map(t -> new TagView(t.getId(), t.getName()))
+                .collect(Collectors.toList());
+        return new ContributionDetailView(
+                q.getId(), q.getContent(), q.getExplanation(), q.getHint(),
+                q.getCategory() != null ? q.getCategory().getId() : null,
+                q.getCategory() != null ? q.getCategory().getName() : null,
+                q.getLevel().getLevelName().name(),
+                q.getStatus().getStatusName().name(),
+                q.getSubmittedBy() != null ? q.getSubmittedBy().getUsername() : null,
+                q.getSubmittedBy() != null ? q.getSubmittedBy().getId() : null,
+                q.getCreatedAt() != null ? q.getCreatedAt().toString() : null,
+                answers, tags);
     }
 }

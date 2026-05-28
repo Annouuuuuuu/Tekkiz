@@ -36,3 +36,10 @@ app:
     expiration: 86400000
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
+  storage:
+    minio:
+      url: ${MINIO_URL:http://localhost:9000}
+      public-url: ${MINIO_PUBLIC_URL:${MINIO_URL:http://localhost:9000}}
+      access-key: ${MINIO_ACCESS_KEY:minioadmin}
+      secret-key: ${MINIO_SECRET_KEY:minioadmin}
+      bucket: ${MINIO_BUCKET:tekizz-avatars}

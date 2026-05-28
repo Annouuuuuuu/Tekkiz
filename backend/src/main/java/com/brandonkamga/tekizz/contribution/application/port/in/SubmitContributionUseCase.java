@@ -1,9 +1,20 @@
 package com.brandonkamga.tekizz.contribution.application.port.in;
 
-import com.brandonkamga.tekizz.domain.Question;
-import com.brandonkamga.tekizz.domain.User;
-import com.brandonkamga.tekizz.dto.contribution.ContributionQuestionRequest;
+import java.util.List;
 
 public interface SubmitContributionUseCase {
-    Question submit(ContributionQuestionRequest request, User submittedBy);
+
+    record SubmitContributionCommand(
+            Long userId, Long categoryId, String content,
+            String explanation, String hint, String level,
+            List<AnswerCommand> answers, List<Long> tagIds) {}
+
+    record AnswerCommand(String content, boolean isCorrect) {}
+
+    record ContributionView(
+            Long id, String content, Long categoryId, String categoryName,
+            String level, String status, int answersCount,
+            String submittedBy, String createdAt) {}
+
+    ContributionView submit(SubmitContributionCommand command);
 }

@@ -1,6 +1,6 @@
 package com.brandonkamga.tekizz.dto.importData;
 
-import com.brandonkamga.tekizz.domain.QuestionLevelType;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionLevelType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

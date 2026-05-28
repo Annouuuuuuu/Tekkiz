@@ -27,4 +27,8 @@ public class UserResponse {
     private String avatarUrl;
     private String country;
     private String bio;
+    private String githubUrl;
+    private String linkedinUrl;
+    private String twitterUrl;
+    private String websiteUrl;
 }

@@ -1,17 +1,36 @@
 package com.brandonkamga.tekizz.admin.application.service;
 
-import com.brandonkamga.tekizz.repository.*;
+import com.brandonkamga.tekizz.catalog.infrastructure.persistence.repository.CategoryRepository;
+import com.brandonkamga.tekizz.dto.admin.AdminStatsResponse;
+import com.brandonkamga.tekizz.exception.BadRequestException;
+import com.brandonkamga.tekizz.exception.ResourceNotFoundException;
+import com.brandonkamga.tekizz.gaming.qcm.domain.model.vo.QuestionStatusType;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.GameSessionRepository;
+import com.brandonkamga.tekizz.gaming.qcm.infrastructure.persistence.repository.QuestionRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchDeckRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchPairRepository;
+import com.brandonkamga.tekizz.gaming.smatch.infrastructure.persistence.repository.SmatchSessionRepository;
+import com.brandonkamga.tekizz.iam.domain.model.vo.RoleType;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.Role;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.entity.UserJpaEntity;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.RoleRepository;
+import com.brandonkamga.tekizz.iam.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Admin application service for platform-wide management.
- */
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
-@Transactional(readOnly = true)
+@Transactional
 public class AdminPlatformApplicationService {
 
-    private final UserRepository userRepository;
+    public record UserView(Long id, String username, String email, String roleName,
+                           String providerName, String createdAt,
+                           String firstName, String lastName, String avatarUrl) {}
+
+    private final UserJpaRepository userRepository;
+    private final RoleRepository roleRepository;
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
     private final GameSessionRepository gameSessionRepository;
@@ -19,14 +38,16 @@ public class AdminPlatformApplicationService {
     private final SmatchPairRepository smatchPairRepository;
     private final SmatchSessionRepository smatchSessionRepository;
 
-    public AdminPlatformApplicationService(UserRepository userRepository,
-                                            QuestionRepository questionRepository,
-                                            CategoryRepository categoryRepository,
-                                            GameSessionRepository gameSessionRepository,
-                                            SmatchDeckRepository smatchDeckRepository,
-                                            SmatchPairRepository smatchPairRepository,
-                                            SmatchSessionRepository smatchSessionRepository) {
+    public AdminPlatformApplicationService(UserJpaRepository userRepository,
+                                           RoleRepository roleRepository,
+                                           QuestionRepository questionRepository,
+                                           CategoryRepository categoryRepository,
+                                           GameSessionRepository gameSessionRepository,
+                                           SmatchDeckRepository smatchDeckRepository,
+                                           SmatchPairRepository smatchPairRepository,
+                                           SmatchSessionRepository smatchSessionRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.questionRepository = questionRepository;
         this.categoryRepository = categoryRepository;
         this.gameSessionRepository = gameSessionRepository;
@@ -35,9 +56,66 @@ public class AdminPlatformApplicationService {
         this.smatchSessionRepository = smatchSessionRepository;
     }
 
-    public long countUsers() { return userRepository.count(); }
-    public long countQuestions() { return questionRepository.count(); }
-    public long countCategories() { return categoryRepository.count(); }
-    public long countQcmSessions() { return gameSessionRepository.count(); }
-    public long countSmatchDecks() { return smatchDeckRepository.count(); }
+    @Transactional(readOnly = true)
+    public AdminStatsResponse getStats() {
+        return AdminStatsResponse.builder()
+                .totalUsers(userRepository.count())
+                .totalQcmQuestions(questionRepository.count())
+                .activeQcmQuestions(questionRepository.findByStatus(QuestionStatusType.ACTIVE).size())
+                .totalQcmCategories(categoryRepository.count())
+                .totalQcmSessions(gameSessionRepository.count())
+                .activeQcmSessions(gameSessionRepository.findByCompletedAtIsNotNull().size())
+                .totalSmatchDecks(smatchDeckRepository.count())
+                .activeSmatchDecks(smatchDeckRepository.countActive())
+                .totalSmatchPairs(smatchPairRepository.count())
+                .totalSmatchSessions(smatchSessionRepository.count())
+                .activeSmatchSessions(smatchSessionRepository.countByCompletedAtIsNull())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserView> getUsers(String search, String role) {
+        return userRepository.findAll().stream()
+                .filter(u -> search == null || search.isEmpty()
+                        || u.getUsername().toLowerCase().contains(search.toLowerCase())
+                        || u.getEmail().toLowerCase().contains(search.toLowerCase()))
+                .filter(u -> role == null || role.isEmpty()
+                        || (u.getRole() != null && u.getRole().getRoleName().name().equals(role)))
+                .map(this::toUserView)
+                .collect(Collectors.toList());
+    }
+
+    public void updateUserRole(Long userId, String roleName, String currentUserEmail) {
+        UserJpaEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (user.getEmail().equals(currentUserEmail)) {
+            throw new BadRequestException("Cannot change your own role");
+        }
+        RoleType roleType = RoleType.valueOf(roleName.toUpperCase());
+        Role role = roleRepository.findByRoleName(roleType)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName));
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
+    public void deleteUser(Long userId, String currentUserEmail) {
+        UserJpaEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (user.getEmail().equals(currentUserEmail)) {
+            throw new BadRequestException("Cannot delete your own account");
+        }
+        userRepository.delete(user);
+    }
+
+    private UserView toUserView(UserJpaEntity u) {
+        String firstName = u.getProfile() != null ? u.getProfile().getFirstName() : null;
+        String lastName  = u.getProfile() != null ? u.getProfile().getLastName()  : null;
+        String avatar    = u.getProfile() != null ? u.getProfile().getAvatarUrl() : null;
+        return new UserView(
+                u.getId(), u.getUsername(), u.getEmail(),
+                u.getRole() != null ? u.getRole().getRoleName().name() : "USER",
+                u.getProvider() != null ? u.getProvider().getProviderName().name() : "LOCAL",
+                u.getCreatedAt() != null ? u.getCreatedAt().toString() : null,
+                firstName, lastName, avatar);
+    }
 }

@@ -1,107 +1,95 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, ReferenceLine,
+} from 'recharts';
 
-/**
- * GlobalScoreChart - Displays score evolution over recent games
- * @param {Array} recentGames - Array of recent game data with score and date
- * @param {number} averageScore - User's average score
- */
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#0d0d0d] px-3 py-2.5 shadow-xl">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30 mb-1">{label}</p>
+      <p className="text-lg font-black tabular-nums text-white">
+        {payload[0].value}
+        <span className="text-xs font-normal text-white/30 ml-1">pts</span>
+      </p>
+      {payload[0].payload.date && (
+        <p className="text-[10px] text-white/25 mt-0.5">{payload[0].payload.date}</p>
+      )}
+    </div>
+  );
+};
+
 const GlobalScoreChart = ({ recentGames = [], averageScore = 0 }) => {
-
-  // Transform recent games into chart data
-  // Take up to 6 most recent games and normalize scores
-  const chartData = recentGames
-    .slice(0, 6)
+  const data = recentGames
+    .slice(0, 10)
     .reverse()
-    .map((game, index) => ({
-      label: `G${index + 1}`,
+    .map((game, i) => ({
+      label: `G${i + 1}`,
       score: game.score || 0,
-      date: game.completedAt ? new Date(game.completedAt).toLocaleDateString() : '',
+      date: game.completedAt ? new Date(game.completedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '',
     }));
 
-  // If no real data, show placeholder
-  const hasData = chartData.length > 0;
-  const displayData = hasData ? chartData : [
-    { label: "G1", score: 0, date: '' },
-    { label: "G2", score: 0, date: '' },
-    { label: "G3", score: 0, date: '' },
-    { label: "G4", score: 0, date: '' },
-    { label: "G5", score: 0, date: '' },
-    { label: "G6", score: 0, date: '' },
-  ];
-
-  // Calculate max score for normalization
-  const maxScore = Math.max(...displayData.map(d => d.score), 100);
+  if (!data.length) {
+    return (
+      <div className="h-48 flex items-center justify-center text-white/20 text-sm">
+        Aucune partie jouée
+      </div>
+    );
+  }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Évolution du score</CardTitle>
-          <div className="text-sm text-muted-foreground">
-            Score moyen: <span className="font-semibold text-foreground">{Math.round(averageScore)}</span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {!hasData ? (
-          <div className="h-40 flex items-center justify-center text-muted-foreground">
-            Aucune partie jouée
-          </div>
-        ) : (
-          <div className="relative h-40">
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 bottom-6 w-8 flex flex-col justify-between text-xs text-muted-foreground">
-              <span>{maxScore}</span>
-              <span>{Math.round(maxScore / 2)}</span>
-              <span>0</span>
-            </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">Évolution du score</p>
+        <p className="text-xs text-white/30">
+          Moy. <span className="font-black text-white/60">{Math.round(averageScore)} pts</span>
+        </p>
+      </div>
 
-            {/* Chart area */}
-            <div className="ml-10 h-34 relative">
-              {/* Grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between">
-                <div className="border-b border-border/50" />
-                <div className="border-b border-border/50" />
-                <div className="border-b border-border/50" />
-              </div>
+      <ResponsiveContainer width="100%" height={180}>
+        <AreaChart data={data} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-primary, #6366f1)" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="var(--color-primary, #6366f1)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
 
-              {/* Bars */}
-              <div className="absolute inset-0 flex items-end justify-around px-2">
-                {displayData.map((data) => {
-                  const heightPercent = maxScore > 0 ? (data.score / maxScore) * 100 : 0;
-                  return (
-                    <div
-                      key={data.label}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      <div
-                        className="w-10 bg-primary/80 rounded-t-sm transition-all hover:bg-primary relative group"
-                        style={{ height: `${heightPercent}%`, minHeight: data.score > 0 ? '4px' : '0' }}
-                      >
-                        {/* Tooltip */}
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          {data.score} pts
-                          {data.date && <span className="text-muted-foreground ml-1">• {data.date}</span>}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">{data.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
 
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-4 mt-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
-            <span className="text-muted-foreground">Score par partie</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          <XAxis
+            dataKey="label"
+            tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10, fontWeight: 700 }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fill: 'rgba(255,255,255,0.20)', fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            tickCount={4}
+          />
+
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
+
+          <ReferenceLine
+            y={averageScore}
+            stroke="rgba(255,255,255,0.12)"
+            strokeDasharray="4 4"
+          />
+
+          <Area
+            type="monotone"
+            dataKey="score"
+            stroke="var(--color-primary, #6366f1)"
+            strokeWidth={2.5}
+            fill="url(#scoreGradient)"
+            dot={{ fill: 'var(--color-primary, #6366f1)', r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: 'var(--color-primary, #6366f1)', stroke: 'rgba(255,255,255,0.2)', strokeWidth: 2 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 package com.brandonkamga.tekizz.iam.application.port.in;
 
-import com.brandonkamga.tekizz.domain.User;
+import com.brandonkamga.tekizz.iam.domain.model.User;
 
 /**
  * Inbound port for profile updates.
@@ -10,5 +10,7 @@ public interface UpdateProfileUseCase {
 
     record UpdateProfileCommand(String username, String email,
                                 String firstName, String lastName,
-                                String avatarUrl, String country, String bio) {}
+                                String avatarUrl, String country, String bio,
+                                String githubUrl, String linkedinUrl,
+                                String twitterUrl, String websiteUrl) {}
 }
