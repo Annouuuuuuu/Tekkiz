@@ -98,7 +98,11 @@ public class UserController {
                 userRequest.getLastName(),
                 userRequest.getAvatarUrl(),
                 userRequest.getCountry(),
-                userRequest.getBio()
+                userRequest.getBio(),
+                userRequest.getGithubUrl(),
+                userRequest.getLinkedinUrl(),
+                userRequest.getTwitterUrl(),
+                userRequest.getWebsiteUrl()
         );
 
         User updated = updateProfileUseCase.update(id, command);

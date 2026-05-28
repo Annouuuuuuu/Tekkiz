@@ -60,6 +60,10 @@ public class UpdateProfileService implements UpdateProfileUseCase {
         if (command.avatarUrl() != null) profile.setAvatarUrl(command.avatarUrl());
         if (command.country() != null) profile.setCountry(command.country());
         if (command.bio() != null) profile.setBio(command.bio());
+        if (command.githubUrl() != null) profile.setGithubUrl(command.githubUrl());
+        if (command.linkedinUrl() != null) profile.setLinkedinUrl(command.linkedinUrl());
+        if (command.twitterUrl() != null) profile.setTwitterUrl(command.twitterUrl());
+        if (command.websiteUrl() != null) profile.setWebsiteUrl(command.websiteUrl());
 
         return userRepositoryPort.save(user);
     }
