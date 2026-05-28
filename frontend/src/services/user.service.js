@@ -170,9 +170,7 @@ async function uploadAvatar(file) {
   try {
     const form = new FormData();
     form.append('file', file);
-    const response = await apiClient.post(ENDPOINTS.USERS.UPLOAD_AVATAR, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post(ENDPOINTS.USERS.UPLOAD_AVATAR, form);
     const user = response.data || response;
     toast.success('Photo de profil mise à jour');
     return { success: true, data: user };

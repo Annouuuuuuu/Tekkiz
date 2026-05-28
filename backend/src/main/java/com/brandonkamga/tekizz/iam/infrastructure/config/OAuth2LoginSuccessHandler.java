@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Handles successful OAuth2 authentication.
@@ -51,18 +52,29 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(
             HttpServletRequest request,
             HttpServletResponse response,
             Authentication authentication) {
 
-        OAuth2User oauthUser = extractOAuthUser(authentication);
-        String provider = extractProvider(authentication);
+        try {
+            OAuth2User oauthUser = extractOAuthUser(authentication);
+            String provider = extractProvider(authentication);
+            processOAuthPostLogin(oauthUser, provider);
+            String token = jwtService.generateToken(authentication);
+            sendRedirect(response, token);
+        } catch (Exception e) {
+            sendFailureRedirect(response);
+        }
+    }
 
-        processOAuthPostLogin(oauthUser, provider);
-
-        String token = jwtService.generateToken(authentication);
-        sendRedirect(response, token);
+    protected void sendFailureRedirect(HttpServletResponse response) {
+        try {
+            response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to redirect after OAuth error", e);
+        }
     }
 
     private void processOAuthPostLogin(OAuth2User oauthUser, String provider) {

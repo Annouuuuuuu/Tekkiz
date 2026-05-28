@@ -189,7 +189,12 @@ async function request(method, endpoint, options = {}) {
 
   // Add body for non-GET requests
   if (data && !['GET', 'HEAD'].includes(method.toUpperCase())) {
-    requestConfig.body = JSON.stringify(data);
+    if (data instanceof FormData) {
+      requestConfig.body = data;
+      delete requestConfig.headers['Content-Type'];
+    } else {
+      requestConfig.body = JSON.stringify(data);
+    }
   }
 
   try {
