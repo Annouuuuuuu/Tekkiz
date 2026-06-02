@@ -44,7 +44,7 @@ function QuestionReviewCard({ review, index }) {
                 : <XCircle className="h-4 w-4 text-red-400 shrink-0" />
               }
             </div>
-            <p className="text-sm font-medium text-white/65 truncate">{review.questionContent}</p>
+            <p className="text-sm font-medium text-white/65 line-clamp-2">{review.questionContent}</p>
           </div>
         </div>
         <button onClick={() => setExpanded(!expanded)}
