@@ -72,16 +72,16 @@ const importQcmQuestions = (questions) =>
 // ─── QCM – Contributions ───────────────────────────────────────────────────
 
 const getContributions = () =>
-  apiClient.get(`${BASE}/qcm/contributions`);
+  apiClient.get(`${BASE}/contributions`);
 
 const getContributionsCount = () =>
-  apiClient.get(`${BASE}/qcm/contributions/count`);
+  apiClient.get(`${BASE}/contributions/count`);
 
 const approveContribution = (id) =>
-  apiClient.put(`${BASE}/qcm/questions/${id}/status`, { status: 'ACTIVE' });
+  apiClient.put(`${BASE}/contributions/${id}/review`, { decision: 'APPROVED' });
 
 const rejectContribution = (id) =>
-  apiClient.put(`${BASE}/qcm/questions/${id}/status`, { status: 'ARCHIVED' });
+  apiClient.put(`${BASE}/contributions/${id}/review`, { decision: 'REJECTED' });
 
 // ─── QCM – Sessions ────────────────────────────────────────────────────────
 
