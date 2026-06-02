@@ -380,30 +380,32 @@ function QcmGamePlayContent() {
               <motion.div
                 key="feedback"
                 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
-                className={`rounded-2xl border px-4 py-2.5 flex items-center gap-3 ${
+                className={`rounded-2xl border px-4 py-3 flex flex-col md:flex-row md:items-center gap-3 ${
                   lastAnswerResult.isCorrect
                     ? 'border-emerald-500/30 bg-emerald-500/[0.07]'
                     : 'border-red-500/30 bg-red-500/[0.07]'
                 }`}
               >
-                {lastAnswerResult.isCorrect
-                  ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                  : <XCircle className="h-4 w-4 text-red-400 shrink-0" />
-                }
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-black ${lastAnswerResult.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {lastAnswerResult.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse'}
-                  </p>
-                  {!lastAnswerResult.isCorrect && (
-                    <p className="text-xs text-white/35 truncate">
-                      → <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
+                <div className="flex items-start gap-3">
+                  {lastAnswerResult.isCorrect
+                    ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    : <XCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+                  }
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-black ${lastAnswerResult.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {lastAnswerResult.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse'}
                     </p>
-                  )}
-                  {explanationsEnabled && lastAnswerResult.explanation && (
-                    <p className="text-xs text-white/25 mt-0.5 line-clamp-1 leading-relaxed">{lastAnswerResult.explanation}</p>
-                  )}
+                    {!lastAnswerResult.isCorrect && (
+                      <p className="text-xs text-white/35 leading-relaxed mt-1">
+                        → <span className="text-emerald-400 font-semibold">{lastAnswerResult.correctAnswerContent}</span>
+                      </p>
+                    )}
+                    {explanationsEnabled && lastAnswerResult.explanation && (
+                      <p className="text-xs text-white/25 mt-1.5 leading-relaxed">{lastAnswerResult.explanation}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 md:ml-auto">
                   {lastAnswerResult.timeAdjustment && (
                     <span className={`text-xs font-black tabular-nums ${lastAnswerResult.timeAdjustment > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {lastAnswerResult.timeAdjustment > 0 ? `+${lastAnswerResult.timeAdjustment}s` : `${lastAnswerResult.timeAdjustment}s`}
@@ -412,7 +414,7 @@ function QcmGamePlayContent() {
                   {lastAnswerResult.hasNextQuestion && (
                     <button
                       onClick={fetchNext}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-black hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+                      className="w-full md:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-black hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                     >
                       Suivant <ArrowRight className="h-3.5 w-3.5" />
                     </button>
