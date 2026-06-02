@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Github, Mail, AlertCircle } from "lucide-react";
+import { X, Github, Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -26,6 +27,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
     email: "",
     password: "",
   });
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
 
   // Update mode when initialMode changes
   useEffect(() => {
@@ -190,14 +192,27 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Mot de passe</label>
-                          <input
-                            type="password"
-                            value={loginPassword}
-                            onChange={(e) => setLoginPassword(e.target.value)}
-                            className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm outline-none focus:border-primary transition-colors"
-                            placeholder="••••••••"
-                            required
-                          />
+                          <div className="relative">
+                            <input
+                              type={showLoginPassword ? "text" : "password"}
+                              value={loginPassword}
+                              onChange={(e) => setLoginPassword(e.target.value)}
+                              className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 pr-12 text-sm outline-none focus:border-primary transition-colors"
+                              placeholder="••••••••"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showLoginPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                         <Button
                           type="submit"
@@ -262,16 +277,29 @@ const AuthModal = ({ isOpen, onClose, initialMode = "login" }) => {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Mot de passe</label>
-                          <input
-                            type="password"
-                            name="password"
-                            value={signupData.password}
-                            onChange={handleSignupChange}
-                            className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm outline-none focus:border-primary transition-colors"
-                            placeholder="••••••••"
-                            minLength={6}
-                            required
-                          />
+                          <div className="relative">
+                            <input
+                              type={showSignupPassword ? "text" : "password"}
+                              name="password"
+                              value={signupData.password}
+                              onChange={handleSignupChange}
+                              className="w-full h-12 rounded-xl border border-white/10 bg-white/5 px-4 pr-12 text-sm outline-none focus:border-primary transition-colors"
+                              placeholder="••••••••"
+                              minLength={6}
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowSignupPassword(!showSignupPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showSignupPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                         <Button
                           type="submit"
